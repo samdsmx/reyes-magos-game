@@ -10,24 +10,34 @@ const ReyesMagosDashGame = () => {
   const gameLoopRef = useRef(null);
 
   const treasureClues = {
-    1: "⭐ PISTA 1: Los Reyes Magos dejaron su primera pista en...",
-    2: "🎁 PISTA 2: Busca donde brillan las luces navideñas...",
-    3: "🌟 PISTA 3: Melchor dice: cuenta 20 pasos desde el árbol...",
-    4: "👑 PISTA 4: Gaspar señala: el regalo está cerca del agua...",
-    5: "✨ PISTA 5: Baltasar revela: ¡Bajo la estrella dorada!",
+    1: "🏟️ PISTA 1: Calienta en el Estadio Central, cerca de la banca.",
+    2: "⚽ PISTA 2: Dribla por la banda y busca junto al banderín.",
+    3: "🎯 PISTA 3: Practica pases cortos junto al círculo central.",
+    4: "🥅 PISTA 4: La pista está detrás de la portería norte.",
+    5: "🏆 PISTA 5: ¡Celebración en la final! La copa te guía.",
   };
 
   const levels = [
-    { name: "Camino a Belén", speed: 2.5, obstacleFreq: 180, difficulty: 0.5 },
     {
-      name: "Valle de Estrellas",
+      name: "Calentamiento en el Estadio",
+      speed: 2.5,
+      obstacleFreq: 180,
+      difficulty: 0.5,
+    },
+    {
+      name: "Fase de Grupos",
       speed: 3,
       obstacleFreq: 170,
       difficulty: 0.6,
     },
-    { name: "Desierto Dorado", speed: 3.5, obstacleFreq: 160, difficulty: 0.7 },
-    { name: "Montañas Nevadas", speed: 4, obstacleFreq: 150, difficulty: 0.8 },
-    { name: "Portal de Belén", speed: 4.5, obstacleFreq: 140, difficulty: 0.9 },
+    {
+      name: "Octavos de Final",
+      speed: 3.5,
+      obstacleFreq: 160,
+      difficulty: 0.7,
+    },
+    { name: "Semifinal", speed: 4, obstacleFreq: 150, difficulty: 0.8 },
+    { name: "La Gran Final", speed: 4.5, obstacleFreq: 140, difficulty: 0.9 },
   ];
 
   useEffect(() => {
@@ -186,97 +196,97 @@ const ReyesMagosDashGame = () => {
         ? character.height * 0.6
         : character.height;
       const width = character.width;
+      const stride = Math.sin(frameCount * 0.2) * 6;
+      const ballRoll = Math.sin(frameCount * 0.4) * 2;
 
       if (character.isDucking) {
-        ctx.fillStyle = "#c41e3a";
-        ctx.fillRect(x - 5, y, width + 10, height);
-
-        ctx.fillStyle = "#ffd700";
-        ctx.fillRect(x + 5, y - 8, 25, 8);
-        ctx.fillRect(x + 8, y - 12, 6, 4);
-        ctx.fillRect(x + 16, y - 12, 6, 4);
-        ctx.fillRect(x + 24, y - 12, 6, 4);
+        ctx.fillStyle = "#1e3a8a";
+        ctx.fillRect(x + 2, y + 6, width + 6, height - 6);
 
         ctx.fillStyle = "#ffdbac";
-        ctx.fillRect(x + 8, y, 20, 15);
+        ctx.beginPath();
+        ctx.arc(x + 18, y + 4, 6, 0, Math.PI * 2);
+        ctx.fill();
 
-        ctx.fillStyle = "#f5f5f5";
-        ctx.fillRect(x + 8, y + 12, 20, 12);
+        ctx.fillStyle = "#0f172a";
+        ctx.fillRect(x + 6, y + 18, 20, 8);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(x + 8, y + 20, 6, 6);
+        ctx.fillRect(x + 18, y + 20, 6, 6);
+
+        ctx.fillStyle = "#f97316";
+        ctx.beginPath();
+        ctx.moveTo(x + 4, y + height);
+        ctx.lineTo(x + 28, y + height);
+        ctx.lineTo(x + 16, y + height - 8);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(x + 34, y + height - 6, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#0f172a";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(x + 34, y + height - 6, 2, 0, Math.PI * 2);
+        ctx.stroke();
       } else {
-        ctx.fillStyle = "#c41e3a";
-        ctx.shadowBlur = 5;
-        ctx.shadowColor = "#8b0000";
+        ctx.fillStyle = "#1e3a8a";
         ctx.beginPath();
         ctx.ellipse(
           x + width / 2,
-          y + 15,
-          width / 2 + 5,
-          height - 15,
+          y + 20,
+          width / 2 + 4,
+          height - 20,
           0,
           0,
           Math.PI * 2
         );
         ctx.fill();
-        ctx.shadowBlur = 0;
-
-        ctx.strokeStyle = "#ffd700";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(x + width / 2, y + 15, width / 2 - 2, 0, Math.PI);
-        ctx.stroke();
-
-        ctx.fillStyle = "#8b4513";
-        ctx.fillRect(x + 8, y + 20, width - 16, height - 25);
 
         ctx.fillStyle = "#ffdbac";
         ctx.beginPath();
-        ctx.arc(x + width / 2, y + 12, 10, 0, Math.PI * 2);
+        ctx.arc(x + width / 2, y + 8, 8, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.fillStyle = "#ffd700";
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = "#ffd700";
-        ctx.fillRect(x + 5, y - 2, width - 10, 6);
-        ctx.fillRect(x + 7, y - 8, 5, 6);
-        ctx.fillRect(x + 15, y - 10, 5, 8);
-        ctx.fillRect(x + 23, y - 8, 5, 6);
-        ctx.shadowBlur = 0;
+        ctx.fillStyle = "#0f172a";
+        ctx.fillRect(x + 8, y + 24, width - 16, 10);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(x + 10, y + 26, 6, 6);
+        ctx.fillRect(x + 20, y + 26, 6, 6);
 
-        ctx.fillStyle = "#ff0000";
+        ctx.strokeStyle = "#111827";
+        ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.arc(x + width / 2, y - 7, 3, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = "#f5f5f5";
+        ctx.moveTo(x + 8, y + height - 5);
+        ctx.lineTo(x + 2 + stride, y + height + 8);
+        ctx.stroke();
         ctx.beginPath();
-        ctx.moveTo(x + width / 2 - 8, y + 15);
-        ctx.lineTo(x + width / 2 - 6, y + 25);
-        ctx.lineTo(x + width / 2, y + 28);
-        ctx.lineTo(x + width / 2 + 6, y + 25);
-        ctx.lineTo(x + width / 2 + 8, y + 15);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.fillStyle = "#000000";
-        ctx.fillRect(x + 14, y + 10, 2, 2);
-        ctx.fillRect(x + 19, y + 10, 2, 2);
-
-        ctx.strokeStyle = "#8b7355";
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(x + width - 2, y + 20);
-        ctx.lineTo(x + width - 2, y + height);
+        ctx.moveTo(x + width - 8, y + height - 5);
+        ctx.lineTo(x + width + 6 - stride, y + height + 6);
         ctx.stroke();
 
-        ctx.fillStyle = "#ffd700";
+        ctx.fillStyle = "#2563eb";
+        ctx.fillRect(x + 4, y + height - 4, 10, 6);
+        ctx.fillRect(x + width - 14, y + height - 4, 10, 6);
+
+        ctx.fillStyle = "#ffffff";
         ctx.beginPath();
-        ctx.arc(x + width - 2, y + 18, 4, 0, Math.PI * 2);
+        ctx.arc(x + width + 10, y + height + 2 + ballRoll, 7, 0, Math.PI * 2);
         ctx.fill();
+        ctx.strokeStyle = "#111827";
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(x + width + 10, y + height + 2 + ballRoll, 2.5, 0, Math.PI * 2);
+        ctx.stroke();
       }
     };
 
     const createObstacle = () => {
-      const types = ["gift", "palm", "camel", "star", "arch"];
+      const types = ["cone", "defender", "goalpost", "ball", "flag"];
       const type = types[Math.floor(Math.random() * types.length)];
 
       let obstacle = {
@@ -285,26 +295,26 @@ const ReyesMagosDashGame = () => {
         passed: false,
       };
 
-      if (type === "gift") {
-        obstacle.width = 30;
-        obstacle.height = 35;
+      if (type === "cone") {
+        obstacle.width = 28;
+        obstacle.height = 30;
         obstacle.y = groundY - obstacle.height;
-      } else if (type === "palm") {
-        obstacle.width = 25;
-        obstacle.height = 70;
+      } else if (type === "defender") {
+        obstacle.width = 36;
+        obstacle.height = 60;
         obstacle.y = groundY - obstacle.height;
-      } else if (type === "camel") {
-        obstacle.width = 50;
-        obstacle.height = 55;
-        obstacle.y = groundY - obstacle.height;
-      } else if (type === "star") {
-        obstacle.width = 50;
-        obstacle.height = 50;
-        obstacle.y = groundY - 140;
-      } else if (type === "arch") {
+      } else if (type === "goalpost") {
         obstacle.width = 90;
         obstacle.height = 70;
-        obstacle.y = groundY - 130;
+        obstacle.y = groundY - obstacle.height;
+      } else if (type === "ball") {
+        obstacle.width = 26;
+        obstacle.height = 26;
+        obstacle.y = groundY - obstacle.height;
+      } else if (type === "flag") {
+        obstacle.width = 30;
+        obstacle.height = 60;
+        obstacle.y = groundY - obstacle.height;
       }
 
       return obstacle;
@@ -313,150 +323,99 @@ const ReyesMagosDashGame = () => {
     const drawObstacle = (obs) => {
       ctx.shadowBlur = 0;
 
-      if (obs.type === "gift") {
-        const colors = ["#c41e3a", "#2e8b57", "#ffd700", "#4169e1"];
-        ctx.fillStyle = colors[Math.floor(obs.x / 200) % colors.length];
-        ctx.fillRect(obs.x, obs.y + 10, obs.width, obs.height - 10);
-
-        ctx.fillStyle = "#ffd700";
-        ctx.fillRect(obs.x + obs.width / 2 - 3, obs.y + 10, 6, obs.height - 10);
-        ctx.fillRect(obs.x, obs.y + obs.height / 2 + 5, obs.width, 6);
-
+      if (obs.type === "cone") {
+        ctx.fillStyle = "#f97316";
         ctx.beginPath();
-        ctx.arc(obs.x + obs.width / 2 - 8, obs.y + 5, 8, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(obs.x + obs.width / 2 + 8, obs.y + 5, 8, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (obs.type === "palm") {
-        ctx.fillStyle = "#8b6914";
-        ctx.fillRect(obs.x + 8, obs.y + 20, 9, obs.height - 20);
-
-        ctx.fillStyle = "#228b22";
-        for (let i = 0; i < 6; i++) {
-          const angle = (i * Math.PI) / 3 - Math.PI / 2;
-          ctx.save();
-          ctx.translate(obs.x + 12, obs.y + 25);
-          ctx.rotate(angle);
-          ctx.beginPath();
-          ctx.ellipse(0, -15, 8, 20, 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.restore();
-        }
-
-        ctx.fillStyle = "#8b4513";
-        for (let i = 0; i < 3; i++) {
-          ctx.beginPath();
-          ctx.arc(obs.x + 12 + (i - 1) * 6, obs.y + 30, 3, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      } else if (obs.type === "camel") {
-        ctx.fillStyle = "#daa520";
-        ctx.fillRect(obs.x + 10, obs.y + 25, 35, 18);
-
-        ctx.beginPath();
-        ctx.arc(obs.x + 22, obs.y + 20, 10, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillRect(obs.x + 38, obs.y + 15, 8, 20);
-        ctx.beginPath();
-        ctx.arc(obs.x + 42, obs.y + 12, 7, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = "#cd9b1d";
-        ctx.beginPath();
-        ctx.ellipse(obs.x + 39, obs.y + 8, 3, 5, -0.3, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.ellipse(obs.x + 45, obs.y + 8, 3, 5, 0.3, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = "#daa520";
-        ctx.fillRect(obs.x + 15, obs.y + 43, 6, 12);
-        ctx.fillRect(obs.x + 25, obs.y + 43, 6, 12);
-        ctx.fillRect(obs.x + 35, obs.y + 43, 6, 12);
-
-        ctx.fillStyle = "#000000";
-        ctx.beginPath();
-        ctx.arc(obs.x + 44, obs.y + 11, 2, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = "#c41e3a";
-        ctx.fillRect(obs.x + 12, obs.y + 24, 30, 8);
-        ctx.strokeStyle = "#ffd700";
-        ctx.lineWidth = 2;
-        ctx.strokeRect(obs.x + 12, obs.y + 24, 30, 8);
-      } else if (obs.type === "star") {
-        ctx.fillStyle = "#ffd700";
-        ctx.shadowBlur = 20;
-        ctx.shadowColor = "#ffd700";
-
-        const centerX = obs.x + obs.width / 2;
-        const centerY = obs.y + obs.height / 2;
-        const outerRadius = 25;
-        const innerRadius = 12;
-        const points = 5;
-
-        ctx.beginPath();
-        for (let i = 0; i < points * 2; i++) {
-          const radius = i % 2 === 0 ? outerRadius : innerRadius;
-          const angle = (i * Math.PI) / points - Math.PI / 2;
-          const x = centerX + Math.cos(angle) * radius;
-          const y = centerY + Math.sin(angle) * radius;
-          if (i === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        }
+        ctx.moveTo(obs.x + obs.width / 2, obs.y);
+        ctx.lineTo(obs.x + obs.width, obs.y + obs.height);
+        ctx.lineTo(obs.x, obs.y + obs.height);
         ctx.closePath();
         ctx.fill();
-
-        ctx.fillStyle = "#ffffff";
+        ctx.fillStyle = "#fdba74";
+        ctx.fillRect(obs.x + 6, obs.y + obs.height - 8, obs.width - 12, 5);
+      } else if (obs.type === "defender") {
+        ctx.fillStyle = "#0f766e";
+        ctx.fillRect(obs.x + 6, obs.y + 18, obs.width - 12, obs.height - 18);
+        ctx.fillStyle = "#ffdbac";
         ctx.beginPath();
-        ctx.arc(centerX, centerY, 6, 0, Math.PI * 2);
+        ctx.arc(obs.x + obs.width / 2, obs.y + 12, 8, 0, Math.PI * 2);
         ctx.fill();
-        ctx.shadowBlur = 0;
-      } else if (obs.type === "arch") {
-        ctx.strokeStyle = "#daa520";
-        ctx.lineWidth = 8;
-        ctx.lineCap = "round";
-
+        ctx.strokeStyle = "#0f172a";
+        ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.moveTo(obs.x + 10, groundY);
-        ctx.lineTo(obs.x + 10, obs.y + 40);
+        ctx.moveTo(obs.x + 12, obs.y + obs.height);
+        ctx.lineTo(obs.x + 6, obs.y + obs.height + 8);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(obs.x + obs.width - 12, obs.y + obs.height);
+        ctx.lineTo(obs.x + obs.width, obs.y + obs.height + 8);
+        ctx.stroke();
+      } else if (obs.type === "goalpost") {
+        ctx.strokeStyle = "#e5e7eb";
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.moveTo(obs.x + 10, obs.y);
+        ctx.lineTo(obs.x + 10, groundY);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(obs.x + obs.width - 10, obs.y);
+        ctx.lineTo(obs.x + obs.width - 10, groundY);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(obs.x + 10, obs.y);
+        ctx.lineTo(obs.x + obs.width - 10, obs.y);
         ctx.stroke();
 
-        ctx.beginPath();
-        ctx.moveTo(obs.x + obs.width - 10, groundY);
-        ctx.lineTo(obs.x + obs.width - 10, obs.y + 40);
-        ctx.stroke();
-
+        ctx.strokeStyle = "rgba(255,255,255,0.6)";
+        ctx.lineWidth = 1;
+        for (let i = 0; i < 5; i++) {
+          ctx.beginPath();
+          ctx.moveTo(obs.x + 12, obs.y + 10 + i * 12);
+          ctx.lineTo(obs.x + obs.width - 12, obs.y + 10 + i * 12);
+          ctx.stroke();
+        }
+        for (let i = 0; i < 4; i++) {
+          ctx.beginPath();
+          ctx.moveTo(obs.x + 12 + i * 18, obs.y + 5);
+          ctx.lineTo(obs.x + 12 + i * 18, groundY - 5);
+          ctx.stroke();
+        }
+      } else if (obs.type === "ball") {
+        ctx.fillStyle = "#ffffff";
         ctx.beginPath();
         ctx.arc(
           obs.x + obs.width / 2,
-          obs.y + 40,
-          obs.width / 2 - 10,
-          Math.PI,
-          0
+          obs.y + obs.height / 2,
+          obs.width / 2,
+          0,
+          Math.PI * 2
+        );
+        ctx.fill();
+        ctx.strokeStyle = "#111827";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(
+          obs.x + obs.width / 2,
+          obs.y + obs.height / 2,
+          obs.width / 5,
+          0,
+          Math.PI * 2
         );
         ctx.stroke();
-
-        ctx.fillStyle = "#ffd700";
-        for (let i = 0; i < 5; i++) {
-          const angle = Math.PI + (i * Math.PI) / 4;
-          const x =
-            obs.x + obs.width / 2 + Math.cos(angle) * (obs.width / 2 - 10);
-          const y = obs.y + 40 + Math.sin(angle) * (obs.width / 2 - 10);
-          ctx.beginPath();
-          ctx.arc(x, y, 4, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        ctx.fillStyle = "#ff6347";
+      } else if (obs.type === "flag") {
+        ctx.strokeStyle = "#94a3b8";
+        ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.arc(obs.x + obs.width / 2, obs.y + 20, 8, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = "#ffd700";
+        ctx.moveTo(obs.x + 6, obs.y);
+        ctx.lineTo(obs.x + 6, groundY);
+        ctx.stroke();
+        ctx.fillStyle = "#ef4444";
         ctx.beginPath();
-        ctx.arc(obs.x + obs.width / 2, obs.y + 20, 5, 0, Math.PI * 2);
+        ctx.moveTo(obs.x + 6, obs.y + 8);
+        ctx.lineTo(obs.x + obs.width, obs.y + 16);
+        ctx.lineTo(obs.x + 6, obs.y + 24);
+        ctx.closePath();
         ctx.fill();
       }
     };
@@ -536,7 +495,7 @@ const ReyesMagosDashGame = () => {
 
       ctx.fillStyle = "#ffd700";
       ctx.font = "bold 22px Arial";
-      ctx.fillText(`⭐ ${levels[currentLevel - 1].name}`, 20, 35);
+      ctx.fillText(`⚽ ${levels[currentLevel - 1].name}`, 20, 35);
 
       ctx.fillStyle = "#ffffff";
       ctx.font = "bold 18px Arial";
@@ -545,7 +504,7 @@ const ReyesMagosDashGame = () => {
         20,
         60
       );
-      ctx.fillText(`🎁 Puntos: ${score}`, 20, 85);
+      ctx.fillText(`🥅 Goles: ${score}`, 20, 85);
 
       ctx.fillStyle = "#1a1f4d";
       ctx.fillRect(20, 95, 260, 20);
@@ -617,10 +576,10 @@ const ReyesMagosDashGame = () => {
         <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full border-4 border-yellow-400">
           <div className="text-center mb-6">
             <h1 className="text-5xl font-bold bg-gradient-to-r from-yellow-500 via-red-600 to-purple-600 bg-clip-text text-transparent mb-2">
-              ⭐ LOS REYES MAGOS ⭐
+              ⚽ DESAFÍO FUTBOLERO ⚽
             </h1>
             <p className="text-xl text-purple-700 font-semibold">
-              Búsqueda del Tesoro Navideño
+              Carrera de obstáculos en el estadio
             </p>
           </div>
 
@@ -645,15 +604,15 @@ const ReyesMagosDashGame = () => {
                 <kbd className="px-3 py-1 bg-white border-2 border-gray-300 rounded-lg shadow">
                   ↓
                 </kbd>{" "}
-                = Agacharse (para estrellas y arcos)
+                = Agacharse (para defensas y porterías)
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-2xl">🎯</span>
-                <span>Evita todos los obstáculos del camino</span>
+                <span>Esquiva conos, defensas y banderines</span>
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-2xl">🗺️</span>
-                <span>Completa niveles para desbloquear pistas del tesoro</span>
+                <span>Supera fases para desbloquear pistas del torneo</span>
               </li>
             </ul>
           </div>
@@ -718,7 +677,7 @@ const ReyesMagosDashGame = () => {
               className="w-full p-3 bg-red-500 text-white rounded-xl hover:bg-red-600 flex items-center justify-center gap-2 font-bold shadow-lg"
             >
               <RotateCcw className="w-5 h-5" />
-              Reiniciar Progreso
+              Reiniciar Temporada
             </button>
           )}
         </div>
@@ -732,9 +691,9 @@ const ReyesMagosDashGame = () => {
         <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border-4 border-yellow-400">
           <Trophy className="w-20 h-20 mx-auto text-yellow-500 mb-4" />
           <h2 className="text-3xl font-bold text-green-600 mb-2">
-            ¡Nivel Completado!
+            ¡Fase Superada!
           </h2>
-          <p className="text-xl mb-4">Puntuación Total: {score}</p>
+          <p className="text-xl mb-4">Marcador Final: {score}</p>
 
           <div className="bg-yellow-50 p-4 rounded-xl border-2 border-yellow-200 mb-6">
             <h3 className="font-bold text-yellow-800 mb-2">
@@ -760,10 +719,12 @@ const ReyesMagosDashGame = () => {
     return (
       <div className="w-full h-screen bg-gradient-to-b from-red-900 via-red-800 to-black flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border-4 border-red-500">
-          <div className="text-6xl mb-4">🐪</div>
-          <h2 className="text-4xl font-bold text-red-600 mb-2">¡Oh no!</h2>
-          <p className="text-gray-600 mb-6">Te has chocado con un obstáculo.</p>
-          <p className="text-2xl font-bold mb-8">Puntuación: {score}</p>
+          <div className="text-6xl mb-4">⚽</div>
+          <h2 className="text-4xl font-bold text-red-600 mb-2">¡Falta!</h2>
+          <p className="text-gray-600 mb-6">
+            Te has estrellado en el entrenamiento.
+          </p>
+          <p className="text-2xl font-bold mb-8">Marcador: {score}</p>
 
           <div className="space-y-3">
             <button
