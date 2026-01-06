@@ -392,60 +392,31 @@ const ReyesMagosDashGame = () => {
       });
     };
 
+    // REEMPLAZA TODA LA FUNCIÓN drawSoccerBall EXISTENTE POR ESTA:
+
     const drawSoccerBall = ({ x, y, radius, rotation = 0 }) => {
       ctx.save();
+      // Trasladamos el contexto al centro donde debe ir el balón
       ctx.translate(x, y);
+
+      // NOTA: Decidí ignorar la 'rotation' para el emoji.
+      // Los emojis tienen sombras y luces predefinidas, y si los rotamos
+      // se ven extraños (la luz vendría de abajo, por ejemplo).
+      // Se ve mejor si el icono se mueve sin girar sobre sí mismo.
+      // Si realmente quieres que gire, descomenta la siguiente línea:
       ctx.rotate(rotation);
 
-      ctx.fillStyle = "#ffffff";
-      ctx.beginPath();
-      ctx.arc(0, 0, radius, 0, Math.PI * 2);
-      ctx.fill();
+      // Calculamos el tamaño de la fuente basado en el radio.
+      // Multiplicamos por un poco más de 2 (2.3) para que el emoji llene
+      // visualmente el espacio que ocupaba el círculo anterior.
+      const fontSize = radius * 2.3;
 
-      const gradient = ctx.createRadialGradient(
-        -radius * 0.3,
-        -radius * 0.3,
-        radius * 0.3,
-        0,
-        0,
-        radius
-      );
-      gradient.addColorStop(0, "rgba(255,255,255,0.95)");
-      gradient.addColorStop(1, "rgba(203,213,225,0.75)");
-      ctx.fillStyle = gradient;
-      ctx.beginPath();
-      ctx.arc(0, 0, radius, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.font = `${fontSize}px sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
 
-      ctx.strokeStyle = "#111827";
-      ctx.lineWidth = 1.3;
-      ctx.beginPath();
-      ctx.arc(0, 0, radius, 0, Math.PI * 2);
-      ctx.stroke();
-
-      const drawPentagon = (size, offsetX, offsetY) => {
-        ctx.beginPath();
-        for (let i = 0; i < 5; i++) {
-          const angle = (Math.PI * 2 * i) / 5 - Math.PI / 2;
-          const px = offsetX + Math.cos(angle) * size;
-          const py = offsetY + Math.sin(angle) * size;
-          if (i === 0) ctx.moveTo(px, py);
-          else ctx.lineTo(px, py);
-        }
-        ctx.closePath();
-        ctx.fillStyle = "#111827";
-        ctx.fill();
-      };
-
-      drawPentagon(radius * 0.28, 0, 0);
-      for (let i = 0; i < 5; i++) {
-        const angle = (Math.PI * 2 * i) / 5 - Math.PI / 2;
-        drawPentagon(
-          radius * 0.2,
-          Math.cos(angle) * radius * 0.55,
-          Math.sin(angle) * radius * 0.55
-        );
-      }
+      // Dibujamos el emoji en el punto (0,0) relativo a la traslación
+      ctx.fillText("⚽", 0, 0);
 
       ctx.restore();
     };
