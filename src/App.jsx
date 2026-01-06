@@ -3,7 +3,7 @@ import { Trophy, RotateCcw } from "lucide-react";
 
 const ReyesMagosDashGame = () => {
   const canvasRef = useRef(null);
-  const controlsRef = useRef({ jump: () => {}, duck: () => {} });
+  const controlsRef = useRef({ jump: () => { }, duck: () => { } });
   const [gameState, setGameState] = useState("menu");
   const [currentLevel, setCurrentLevel] = useState(1);
   const [gameMode, setGameMode] = useState("story");
@@ -27,24 +27,24 @@ const ReyesMagosDashGame = () => {
   const levels = [
     {
       name: "Calentamiento en el Estadio",
-      speed: 2.5,
-      obstacleFreq: 180,
-      difficulty: 0.5,
+      speed: 3.5,
+      obstacleFreq: 110,
+      difficulty: 0.55,
     },
     {
       name: "Fase de Grupos",
-      speed: 3,
-      obstacleFreq: 170,
-      difficulty: 0.6,
+      speed: 4,
+      obstacleFreq: 105,
+      difficulty: 0.65,
     },
     {
       name: "Octavos de Final",
-      speed: 3.5,
-      obstacleFreq: 160,
-      difficulty: 0.7,
+      speed: 4.5,
+      obstacleFreq: 100,
+      difficulty: 0.75,
     },
-    { name: "Semifinal", speed: 4, obstacleFreq: 150, difficulty: 0.8 },
-    { name: "La Gran Final", speed: 4.5, obstacleFreq: 140, difficulty: 0.9 },
+    { name: "Semifinal", speed: 5, obstacleFreq: 95, difficulty: 0.85 },
+    { name: "La Gran Final", speed: 5.5, obstacleFreq: 90, difficulty: 0.95 },
   ];
 
   const mapImagePath = "/mapa-reyes-magos.png";
@@ -161,11 +161,11 @@ const ReyesMagosDashGame = () => {
       gameMode === "story"
         ? storyConfig
         : {
-            name: gameMode === "endless" ? "Endless" : "Ritmo",
-            speed: 3.2,
-            obstacleFreq: 170,
-            difficulty: 0.7,
-          };
+          name: gameMode === "endless" ? "Endless" : "Ritmo",
+          speed: 3.2,
+          obstacleFreq: 170,
+          difficulty: 0.7,
+        };
 
     let character = {
       x: 120,
@@ -186,7 +186,7 @@ const ReyesMagosDashGame = () => {
     let distance = 0;
     let hasCollided = false;
     const groundY = 430;
-    const levelDistance = 5000;
+    const levelDistance = 10000;
     const worldWidth = BASE_WIDTH;
     const worldHeight = BASE_HEIGHT;
 
@@ -392,30 +392,16 @@ const ReyesMagosDashGame = () => {
       });
     };
 
-    // REEMPLAZA TODA LA FUNCIÓN drawSoccerBall EXISTENTE POR ESTA:
-
     const drawSoccerBall = ({ x, y, radius, rotation = 0 }) => {
       ctx.save();
-      // Trasladamos el contexto al centro donde debe ir el balón
       ctx.translate(x, y);
-
-      // NOTA: Decidí ignorar la 'rotation' para el emoji.
-      // Los emojis tienen sombras y luces predefinidas, y si los rotamos
-      // se ven extraños (la luz vendría de abajo, por ejemplo).
-      // Se ve mejor si el icono se mueve sin girar sobre sí mismo.
-      // Si realmente quieres que gire, descomenta la siguiente línea:
       ctx.rotate(rotation);
-
-      // Calculamos el tamaño de la fuente basado en el radio.
-      // Multiplicamos por un poco más de 2 (2.3) para que el emoji llene
-      // visualmente el espacio que ocupaba el círculo anterior.
       const fontSize = radius * 2.3;
 
       ctx.font = `${fontSize}px sans-serif`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-
-      // Dibujamos el emoji en el punto (0,0) relativo a la traslación
+      ctx.fillStyle = "black";
       ctx.fillText("⚽", 0, 0);
 
       ctx.restore();
@@ -423,121 +409,127 @@ const ReyesMagosDashGame = () => {
 
     const drawCharacter = () => {
       const x = character.x;
-      const y = character.isDucking ? groundY - 25 : character.y;
-      const height = character.isDucking
-        ? character.height * 0.6
-        : character.height;
-      const width = character.width;
-      const stride = Math.sin(frameCount * 0.2) * 6;
-      const ballRoll = Math.sin(frameCount * 0.4) * 2;
+      // Ajustamos la posición Y para el dibujo
+      const drawY = character.isDucking ? groundY - 25 : character.y;
+
+      const colors = {
+        skin: "#ffdbac",
+        hair: "#2d1a12",
+        shirtMain: "#6CACE4", // Celeste (Argentina)
+        shirtSec: "#FFFFFF",
+        shorts: "#000000",
+        socks: "#FFFFFF",
+        boots: "#000000"
+      };
+
+      const isRunning = !character.isJumping && !character.isDucking;
+      const swing = isRunning ? Math.sin(frameCount * 0.3) * 10 : 0;
+      const bounce = isRunning ? Math.abs(Math.sin(frameCount * 0.3)) * 3 : 0;
+      const finalY = drawY - bounce;
+
+      ctx.save();
 
       if (character.isDucking) {
-        ctx.fillStyle = "#1e3a8a";
-        ctx.fillRect(x + 2, y + 6, width + 6, height - 6);
+        // --- POSE DE DESLIZAMIENTO (Mirando a la DERECHA) ---
 
-        ctx.fillStyle = "#0b3a82";
-        ctx.fillRect(x + 2, y + 6, width + 6, 6);
+        // 1. Pierna izquierda (doblada atrás)
+        ctx.fillStyle = colors.shorts;
+        ctx.fillRect(x - 5, groundY - 15, 12, 10);
 
-        ctx.fillStyle = "#ffdbac";
-        ctx.beginPath();
-        ctx.arc(x + 18, y + 4, 6, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = "#1f2937";
-        ctx.beginPath();
-        ctx.arc(x + 18, y + 1, 6, Math.PI, Math.PI * 2);
-        ctx.fill();
+        // 2. Pierna derecha (estirada adelante hacia el balón)
+        ctx.fillStyle = colors.skin;
+        ctx.fillRect(x + 20, groundY - 10, 15, 6);
+        ctx.fillStyle = colors.boots;
+        ctx.fillRect(x + 35, groundY - 12, 8, 8);
 
-        ctx.fillStyle = "#0f172a";
-        ctx.fillRect(x + 6, y + 18, 20, 8);
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(x + 8, y + 20, 6, 6);
-        ctx.fillRect(x + 18, y + 20, 6, 6);
-        ctx.fillStyle = "#fbbf24";
-        ctx.fillRect(x + 14, y + 18, 4, 10);
+        // 3. Torso (inclinado atrás)
+        ctx.fillStyle = colors.shirtMain;
+        ctx.fillRect(x, groundY - 25, 25, 14);
+        ctx.fillStyle = colors.shirtSec;
+        ctx.fillRect(x + 10, groundY - 25, 5, 14);
 
-        ctx.fillStyle = "#f97316";
-        ctx.beginPath();
-        ctx.moveTo(x + 4, y + height);
-        ctx.lineTo(x + 28, y + height);
-        ctx.lineTo(x + 16, y + height - 8);
-        ctx.closePath();
-        ctx.fill();
+        // 4. Cabeza (Mirando a la derecha)
+        ctx.fillStyle = colors.skin;
+        ctx.fillRect(x + 5, groundY - 35, 14, 12);
 
+        // Pelo (Nuca a la IZQUIERDA, Frente a la DERECHA)
+        ctx.fillStyle = colors.hair;
+        ctx.fillRect(x + 3, groundY - 37, 16, 4); // Parte de arriba
+        ctx.fillRect(x + 3, groundY - 35, 4, 8);  // Nuca (izquierda)
+
+        // Ojo (a la derecha)
+        ctx.fillStyle = "#000";
+        ctx.fillRect(x + 15, groundY - 32, 2, 2);
+
+        // Balón
         drawSoccerBall({
-          x: x + 34,
-          y: y + height - 6,
+          x: x + 48,
+          y: groundY - 10,
           radius: 6,
-          rotation: ballRoll * 0.2,
+          rotation: frameCount * 0.2,
         });
+
       } else {
-        ctx.fillStyle = "#1e3a8a";
-        ctx.beginPath();
-        ctx.ellipse(
-          x + width / 2,
-          y + 20,
-          width / 2 + 4,
-          height - 20,
-          0,
-          0,
-          Math.PI * 2
-        );
-        ctx.fill();
+        // --- POSE DE CORRER (Mirando a la DERECHA) ---
 
-        ctx.fillStyle = "#1e40af";
-        ctx.beginPath();
-        ctx.ellipse(
-          x + width / 2,
-          y + 20,
-          width / 2 - 2,
-          height - 28,
-          0,
-          0,
-          Math.PI * 2
-        );
-        ctx.fill();
+        // 1. BRAZO TRASERO (Izquierda)
+        ctx.fillStyle = colors.skin;
+        ctx.fillRect(x + 12 - swing, finalY + 15, 6, 14);
 
-        ctx.fillStyle = "#ffdbac";
-        ctx.beginPath();
-        ctx.arc(x + width / 2, y + 8, 8, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = "#1f2937";
-        ctx.beginPath();
-        ctx.arc(x + width / 2, y + 6, 8, Math.PI, Math.PI * 2);
-        ctx.fill();
+        // 2. PIERNA TRASERA
+        const legRX = x + 10 + swing;
+        ctx.fillStyle = colors.shorts;
+        ctx.fillRect(x + 10, finalY + 25, 14, 6);
+        ctx.fillStyle = colors.skin;
+        ctx.fillRect(legRX, finalY + 28, 7, 8);
+        ctx.fillStyle = colors.socks;
+        ctx.fillRect(legRX, finalY + 36, 7, 6);
+        ctx.fillStyle = colors.boots;
+        ctx.fillRect(legRX - 2, finalY + 42, 11, 5);
 
-        ctx.fillStyle = "#0f172a";
-        ctx.fillRect(x + 8, y + 24, width - 16, 10);
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(x + 10, y + 26, 6, 6);
-        ctx.fillRect(x + 20, y + 26, 6, 6);
-        ctx.fillStyle = "#fbbf24";
-        ctx.fillRect(x + 16, y + 24, 4, 12);
+        // 3. CUERPO
+        ctx.fillStyle = colors.shirtMain;
+        ctx.fillRect(x + 5, finalY + 8, 24, 20);
+        ctx.fillStyle = colors.shirtSec;
+        ctx.fillRect(x + 15, finalY + 8, 6, 20);
 
-        ctx.strokeStyle = "#111827";
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.moveTo(x + 8, y + height - 5);
-        ctx.lineTo(x + 2 + stride, y + height + 8);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(x + width - 8, y + height - 5);
-        ctx.lineTo(x + width + 6 - stride, y + height + 6);
-        ctx.stroke();
+        // 4. CABEZA (CORREGIDA)
+        ctx.fillStyle = colors.skin;
+        ctx.fillRect(x + 8, finalY - 8, 18, 18); // Cara base
 
-        ctx.fillStyle = "#2563eb";
-        ctx.fillRect(x + 4, y + height - 4, 10, 6);
-        ctx.fillRect(x + width - 14, y + height - 4, 10, 6);
-        ctx.fillStyle = "#0f172a";
-        ctx.fillRect(x + 4, y + height - 1, 10, 3);
-        ctx.fillRect(x + width - 14, y + height - 1, 10, 3);
+        // Pelo
+        ctx.fillStyle = colors.hair;
+        ctx.fillRect(x + 6, finalY - 10, 22, 6); // Parte superior
+        ctx.fillRect(x + 6, finalY - 4, 5, 10);  // Nuca/Patilla trasera (IZQUIERDA)
 
+        // Ojo (Punto negro a la DERECHA para indicar mirada)
+        ctx.fillStyle = "#000";
+        ctx.fillRect(x + 22, finalY - 2, 2, 2);
+
+        // 5. PIERNA DELANTERA
+        const legLX = x + 10 - swing;
+        ctx.fillStyle = colors.skin;
+        ctx.fillRect(legLX, finalY + 28, 7, 8);
+        ctx.fillStyle = colors.socks;
+        ctx.fillRect(legLX, finalY + 36, 7, 6);
+        ctx.fillStyle = colors.boots;
+        ctx.fillRect(legLX + 2, finalY + 42, 11, 5); // Botín apuntando a derecha
+
+        // 6. BRAZO DELANTERO
+        ctx.fillStyle = colors.skin;
+        ctx.fillRect(x + 14 + swing, finalY + 15, 6, 14);
+
+        // BALÓN
+        const ballRoll = Math.sin(frameCount * 0.4) * 2;
         drawSoccerBall({
-          x: x + width + 10,
-          y: y + height + 2 + ballRoll,
+          x: x + 40,
+          y: character.y + character.height - 5,
           radius: 7,
           rotation: ballRoll * 0.3,
         });
       }
+
+      ctx.restore();
     };
 
     const createObstacle = () => {
@@ -559,7 +551,7 @@ const ReyesMagosDashGame = () => {
         obstacle.height = 60;
         obstacle.y = groundY - obstacle.height;
       } else if (type === "goalpost") {
-        obstacle.width = 90;
+        obstacle.width = 120;
         obstacle.height = 50;
         obstacle.y = groundY - obstacle.height;
       } else if (type === "ball") {
@@ -568,9 +560,9 @@ const ReyesMagosDashGame = () => {
         const isHigh = Math.random() > 0.5;
 
         if (isHigh) {
-           obstacle.y = groundY - 55; 
+          obstacle.y = groundY - 55;
         } else {
-            obstacle.y = groundY - obstacle.height;
+          obstacle.y = groundY - obstacle.height;
         }
       } else if (type === "flag") {
         obstacle.width = 30;
@@ -595,22 +587,81 @@ const ReyesMagosDashGame = () => {
         ctx.fillStyle = "#fdba74";
         ctx.fillRect(obs.x + 6, obs.y + obs.height - 8, obs.width - 12, 5);
       } else if (obs.type === "defender") {
-        ctx.fillStyle = "#0f766e";
-        ctx.fillRect(obs.x + 6, obs.y + 18, obs.width - 12, obs.height - 18);
-        ctx.fillStyle = "#ffdbac";
-        ctx.beginPath();
-        ctx.arc(obs.x + obs.width / 2, obs.y + 12, 8, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = "#0f172a";
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.moveTo(obs.x + 12, obs.y + obs.height);
-        ctx.lineTo(obs.x + 6, obs.y + obs.height + 8);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(obs.x + obs.width - 12, obs.y + obs.height);
-        ctx.lineTo(obs.x + obs.width, obs.y + obs.height + 8);
-        ctx.stroke();
+        const x = obs.x;
+        // Calculamos la posición Y con un pequeño rebote (más lento que correr)
+        // para que parezca que está trotando o esperando.
+        const bounce = Math.abs(Math.sin(frameCount * 0.1)) * 2;
+        const swing = Math.sin(frameCount * 0.1) * 5;
+        const drawY = obs.y - bounce + 10;
+
+        // COLORES (Equipo Rival - Rojo y Blanco)
+        const defColors = {
+          skin: "#e0ac69",      // Piel un poco más oscura
+          hair: "#1a1a1a",      // Pelo negro
+          shirt: "#ef4444",     // Camiseta Roja
+          shorts: "#ffffff",    // Pantalón Blanco
+          socks: "#ef4444",     // Medias Rojas
+          boots: "#111827"      // Botines negros
+        };
+
+        ctx.save();
+
+        // 1. BRAZO TRASERO (El que se ve por detrás)
+        ctx.fillStyle = defColors.skin;
+        ctx.fillRect(x + 20 + swing, drawY + 18, 6, 14);
+
+        // 2. PIERNA TRASERA
+        const legBackX = x + 14 - swing;
+        ctx.fillStyle = defColors.skin;
+        ctx.fillRect(legBackX, drawY + 30, 7, 8); // Muslo
+        ctx.fillStyle = defColors.socks;
+        ctx.fillRect(legBackX, drawY + 38, 7, 8); // Media
+        ctx.fillStyle = defColors.boots;
+        ctx.fillRect(legBackX - 4, drawY + 46, 11, 5); // Botín apuntando izquierda
+
+        // 3. TORSO (Cuerpo)
+        ctx.fillStyle = defColors.shirt;
+        ctx.fillRect(x + 8, drawY + 10, 24, 22); // Camiseta
+        ctx.fillStyle = defColors.shorts;
+        ctx.fillRect(x + 8, drawY + 32, 24, 8);  // Shorts
+
+        // Detalle camiseta (Franja vertical oscura)
+        ctx.fillStyle = "#b91c1c";
+        ctx.fillRect(x + 18, drawY + 10, 4, 22);
+
+        // 4. CABEZA (Mirando a la IZQUIERDA <- hacia el jugador)
+        ctx.fillStyle = defColors.skin;
+        ctx.fillRect(x + 10, drawY - 6, 18, 18); // Cara
+
+        // Pelo
+        ctx.fillStyle = defColors.hair;
+        ctx.fillRect(x + 8, drawY - 8, 22, 6); // Parte superior
+        ctx.fillRect(x + 24, drawY - 4, 6, 10); // Nuca (está a la derecha porque mira a la izq)
+
+        // Ojo (Mirando al jugador a la izquierda)
+        ctx.fillStyle = "#000";
+        ctx.fillRect(x + 12, drawY, 2, 2);
+
+        // Ceño fruncido (Ceja para que se vea enojado/competitivo)
+        ctx.fillStyle = defColors.hair;
+        ctx.fillRect(x + 11, drawY - 2, 5, 2);
+
+        // 5. PIERNA DELANTERA (La más cercana a la pantalla)
+        const legFrontX = x + 14 + swing;
+        ctx.fillStyle = defColors.skin;
+        ctx.fillRect(legFrontX, drawY + 30, 7, 8);
+        ctx.fillStyle = defColors.socks;
+        ctx.fillRect(legFrontX, drawY + 38, 7, 8);
+        ctx.fillStyle = defColors.boots;
+        ctx.fillRect(legFrontX - 4, drawY + 46, 11, 5);
+
+        // 6. BRAZO DELANTERO
+        ctx.fillStyle = defColors.skin;
+        ctx.fillRect(x + 10 - swing, drawY + 18, 6, 14);
+
+        ctx.restore();
+
+
       } else if (obs.type === "goalpost") {
         ctx.strokeStyle = "#e5e7eb";
         ctx.lineWidth = 6;
@@ -629,18 +680,7 @@ const ReyesMagosDashGame = () => {
 
         ctx.strokeStyle = "rgba(255,255,255,0.6)";
         ctx.lineWidth = 1;
-        for (let i = 0; i < 5; i++) {
-          ctx.beginPath();
-          ctx.moveTo(obs.x + 12, obs.y + 10 + i * 12);
-          ctx.lineTo(obs.x + obs.width - 12, obs.y + 10 + i * 12);
-          ctx.stroke();
-        }
-        for (let i = 0; i < 4; i++) {
-          ctx.beginPath();
-          ctx.moveTo(obs.x + 12 + i * 18, obs.y + 5);
-          ctx.lineTo(obs.x + 12 + i * 18, groundY - 5);
-          ctx.stroke();
-        }
+
       } else if (obs.type === "ball") {
         drawSoccerBall({
           x: obs.x + obs.width / 2,
@@ -649,19 +689,24 @@ const ReyesMagosDashGame = () => {
           rotation: frameCount * 0.08,
         });
       } else if (obs.type === "flag") {
-        ctx.strokeStyle = "#94a3b8";
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(obs.x + 6, obs.y);
-        ctx.lineTo(obs.x + 6, groundY);
-        ctx.stroke();
-        ctx.fillStyle = "#ef4444";
-        ctx.beginPath();
-        ctx.moveTo(obs.x + 6, obs.y + 8);
-        ctx.lineTo(obs.x + obs.width, obs.y + 16);
-        ctx.lineTo(obs.x + 6, obs.y + 24);
-        ctx.closePath();
-        ctx.fill();
+        ctx.save();
+        
+        // Ajustamos el tamaño basado en la altura del obstáculo
+        const fontSize = obs.height; 
+        ctx.font = `${fontSize}px sans-serif`;
+        ctx.textAlign = "center";
+        
+        // "bottom" es clave aquí: dibuja el emoji desde los pies hacia arriba
+        // para que quede perfectamente apoyado en el suelo.
+        ctx.textBaseline = "bottom"; 
+        
+        // Importante: Reseteamos el color para evitar transparencias accidentales
+        ctx.fillStyle = "black"; 
+        
+        // Dibujamos el emoji centrado en el ancho del obstáculo y pegado al suelo (groundY)
+        ctx.fillText("🚩", obs.x + obs.width / 2, groundY + 10);
+        
+        ctx.restore();
       }
     };
 
@@ -720,10 +765,10 @@ const ReyesMagosDashGame = () => {
         };
 
         const hitsPillar =
-          !character.isDucking && 
+          !character.isDucking &&
           (isRectCollision(characterRect, leftPillar) ||
-           isRectCollision(characterRect, rightPillar));
-           
+            isRectCollision(characterRect, rightPillar));
+
         const hitsTopBar =
           !character.isDucking && isRectCollision(characterRect, topBar);
 
@@ -770,7 +815,7 @@ const ReyesMagosDashGame = () => {
 
       if (
         frameCount %
-          Math.floor(modeConfig.obstacleFreq / modeConfig.difficulty) ===
+        Math.floor(modeConfig.obstacleFreq / modeConfig.difficulty) ===
         0
       ) {
         const lastObstacle = obstacles[obstacles.length - 1];
@@ -806,8 +851,8 @@ const ReyesMagosDashGame = () => {
 
       const hudX = 16;
       const hudY = 16;
-      const hudWidth = 220;
-      const hudHeight = 94;
+      const hudWidth = 160;
+      const hudHeight = 50;
 
       ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
       ctx.fillRect(hudX, hudY, hudWidth, hudHeight);
@@ -815,18 +860,6 @@ const ReyesMagosDashGame = () => {
       ctx.fillStyle = "#ffffff";
       ctx.font = "bold 24px Arial";
       ctx.fillText(`📏 ${Math.floor(distance)}m`, hudX + 12, hudY + 32);
-
-      ctx.fillStyle = "#ffd700";
-      ctx.font = "bold 24px Arial";
-      ctx.fillText(`🥅 ${score}`, hudX + 12, hudY + 60);
-
-      ctx.fillStyle = "#a5b4fc";
-      ctx.font = "bold 14px Arial";
-      ctx.fillText(
-        `${gameMode === "story" ? "Historia" : modeConfig.name} · ${bpm} BPM`,
-        hudX + 12,
-        hudY + 78
-      );
 
       frameCount++;
 
@@ -903,58 +936,58 @@ const ReyesMagosDashGame = () => {
       <>
         <div className="w-full min-h-screen bg-gradient-to-b from-blue-900 via-purple-900 to-blue-900 flex items-center justify-center p-4 sm:p-6">
           <div className="bg-white rounded-2xl shadow-2xl p-5 sm:p-8 max-w-2xl w-full border-4 border-yellow-400">
-<div className="text-center mb-5 sm:mb-6">
-  {/* Contenedor flex para alinear balones y título */}
-  <div className="flex items-center justify-center gap-4 mb-2">
-    <span className="text-4xl sm:text-6xl">⚽</span>
-    
-    <h1 className="text-3xl sm:text-5xl font-bold bg-gradient-to-r from-yellow-500 via-red-600 to-purple-600 bg-clip-text text-transparent">
-      DESAFÍO FUTBOLERO
-    </h1>
-    
-    <span className="text-4xl sm:text-6xl">⚽</span>
-  </div>
+            <div className="text-center mb-5 sm:mb-6">
+              {/* Contenedor flex para alinear balones y título */}
+              <div className="flex items-center justify-center gap-4 mb-2">
+                <span className="text-4xl sm:text-6xl">⚽</span>
 
-  <p className="text-base sm:text-xl text-purple-700 font-semibold">
-    Carrera de obstáculos de los Reyes Magos
-  </p>
-</div>
+                <h1 className="text-3xl sm:text-5xl font-bold bg-gradient-to-r from-yellow-500 via-red-600 to-purple-600 bg-clip-text text-transparent">
+                  DESAFÍO FUTBOLERO
+                </h1>
 
-          <div className="mb-6 p-4 sm:p-5 bg-gradient-to-r from-yellow-50 to-red-50 border-3 border-yellow-400 rounded-xl shadow-inner">
-            <h2 className="font-bold text-lg sm:text-xl mb-3 text-red-700">
-              🎮 Cómo Jugar:
-            </h2>
-            <ul className="text-sm sm:text-base space-y-2">
-              <li className="flex items-center gap-2">
-                <span className="text-2xl">⬆️</span>
-                <kbd className="px-2 sm:px-3 py-1 bg-white border-2 border-gray-300 rounded-lg shadow">
-                  ESPACIO
-                </kbd>{" "}
-                o
-                <kbd className="px-2 sm:px-3 py-1 bg-white border-2 border-gray-300 rounded-lg shadow">
-                  ↑
-                </kbd>{" "}
-                o<strong className="text-blue-600">TOQUE</strong> = Saltar
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-2xl">⬇️</span>
-                <kbd className="px-2 sm:px-3 py-1 bg-white border-2 border-gray-300 rounded-lg shadow">
-                  ↓
-                </kbd>{" "}
-                = Agacharse (mantén pulsado en móvil) (para porterías)
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-2xl">🎯</span>
-                <span>Esquiva conos, defensas y banderines</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-2xl">🗺️</span>
-                <span>Supera fases para desbloquear pistas del torneo</span>
-              </li>
-            </ul>
-          </div>
+                <span className="text-4xl sm:text-6xl">⚽</span>
+              </div>
 
-          <div className="mb-6">
+              <p className="text-base sm:text-xl text-purple-700 font-semibold">
+                Carrera de obstáculos de los Reyes Magos
+              </p>
+            </div>
+
+            <div className="mb-6 p-4 sm:p-5 bg-gradient-to-r from-yellow-50 to-red-50 border-3 border-yellow-400 rounded-xl shadow-inner">
+              <h2 className="font-bold text-lg sm:text-xl mb-3 text-red-700">
+                🎮 Cómo Jugar:
+              </h2>
+              <ul className="text-sm sm:text-base space-y-2">
+                <li className="flex items-center gap-2">
+                  <span className="text-2xl">⬆️</span>
+                  <kbd className="px-2 sm:px-3 py-1 bg-white border-2 border-gray-300 rounded-lg shadow">
+                    ESPACIO
+                  </kbd>{" "}
+                  o
+                  <kbd className="px-2 sm:px-3 py-1 bg-white border-2 border-gray-300 rounded-lg shadow">
+                    ↑
+                  </kbd>{" "}
+                  o<strong className="text-blue-600">TOQUE</strong> = Saltar
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-2xl">⬇️</span>
+                  <kbd className="px-2 sm:px-3 py-1 bg-white border-2 border-gray-300 rounded-lg shadow">
+                    ↓
+                  </kbd>{" "}
+                  = Agacharse (mantén pulsado en móvil) (para porterías)
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-2xl">🎯</span>
+                  <span>Esquiva conos, defensas y banderines</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-2xl">🗺️</span>
+                  <span>Supera fases para desbloquear pistas del torneo</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="mb-6">
               <div className="space-y-3">
                 {levels.map((level, index) => {
                   const levelNum = index + 1;
@@ -967,13 +1000,12 @@ const ReyesMagosDashGame = () => {
                       key={levelNum}
                       onClick={() => isUnlocked && startLevel(levelNum)}
                       disabled={!isUnlocked}
-                      className={`w-full p-3 sm:p-4 rounded-xl font-bold text-base sm:text-lg transition-all transform hover:scale-105 shadow-lg ${
-                        isCompleted
+                      className={`w-full p-3 sm:p-4 rounded-xl font-bold text-base sm:text-lg transition-all transform hover:scale-105 shadow-lg ${isCompleted
                           ? "bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700"
                           : isUnlocked
-                          ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700"
-                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      }`}
+                            ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700"
+                            : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        }`}
                     >
                       <div className="flex items-center justify-between">
                         <span>
@@ -986,60 +1018,60 @@ const ReyesMagosDashGame = () => {
                   );
                 })}
               </div>
-          </div>
+            </div>
 
-          {unlockedLevels.length > 0 && (
-            <div className="mb-4 p-4 sm:p-5 bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-amber-400 rounded-xl shadow-lg">
-              <h3 className="font-bold text-lg sm:text-xl mb-3 text-amber-800 flex items-center gap-2">
-                🗺️ Pistas Desbloqueadas:
-              </h3>
-              <div className="space-y-2">
-                {unlockedLevels
-                  .sort((a, b) => a - b)
-                  .map((level) => (
-                    <div
-                      key={level}
-                      className="p-3 sm:p-4 bg-white rounded-lg border-2 border-amber-200 shadow"
-                    >
-                      <p className="text-sm sm:text-base font-mono">
-                        {treasureClues[level]}
-                      </p>
-                    </div>
-                  ))}
+            {unlockedLevels.length > 0 && (
+              <div className="mb-4 p-4 sm:p-5 bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-amber-400 rounded-xl shadow-lg">
+                <h3 className="font-bold text-lg sm:text-xl mb-3 text-amber-800 flex items-center gap-2">
+                  🗺️ Pistas Desbloqueadas:
+                </h3>
+                <div className="space-y-2">
+                  {unlockedLevels
+                    .sort((a, b) => a - b)
+                    .map((level) => (
+                      <div
+                        key={level}
+                        className="p-3 sm:p-4 bg-white rounded-lg border-2 border-amber-200 shadow"
+                      >
+                        <p className="text-sm sm:text-base font-mono">
+                          {treasureClues[level]}
+                        </p>
+                      </div>
+                    ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {allLevelsCompleted && (
-            <div className="mb-4 p-4 sm:p-5 bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-300 rounded-xl shadow-lg">
-              <h3 className="font-bold text-lg sm:text-xl mb-2 text-emerald-800">
-                🗺️ Mapa Completo Desbloqueado
-              </h3>
-              <p className="text-sm sm:text-base text-emerald-900 mb-3">
-                Has terminado todas las fases. Puedes abrir el mapa en pantalla
-                completa.
-              </p>
+            {allLevelsCompleted && (
+              <div className="mb-4 p-4 sm:p-5 bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-300 rounded-xl shadow-lg">
+                <h3 className="font-bold text-lg sm:text-xl mb-2 text-emerald-800">
+                  🗺️ Mapa Completo Desbloqueado
+                </h3>
+                <p className="text-sm sm:text-base text-emerald-900 mb-3">
+                  Has terminado todas las fases. Puedes abrir el mapa en pantalla
+                  completa.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setIsMapOpen(true)}
+                  className="text-emerald-700 font-semibold underline underline-offset-4 hover:text-emerald-900"
+                >
+                  Ver mapa a pantalla completa
+                </button>
+              </div>
+            )}
+
+            {unlockedLevels.length > 0 && (
               <button
-                type="button"
-                onClick={() => setIsMapOpen(true)}
-                className="text-emerald-700 font-semibold underline underline-offset-4 hover:text-emerald-900"
+                onClick={resetProgress}
+                className="w-full p-3 sm:p-4 bg-red-500 text-white rounded-xl hover:bg-red-600 flex items-center justify-center gap-2 font-bold text-sm sm:text-base shadow-lg"
               >
-                Ver mapa a pantalla completa
+                <RotateCcw className="w-5 h-5" />
+                Reiniciar Temporada
               </button>
-            </div>
-          )}
-
-          {unlockedLevels.length > 0 && (
-            <button
-              onClick={resetProgress}
-              className="w-full p-3 sm:p-4 bg-red-500 text-white rounded-xl hover:bg-red-600 flex items-center justify-center gap-2 font-bold text-sm sm:text-base shadow-lg"
-            >
-              <RotateCcw className="w-5 h-5" />
-              Reiniciar Temporada
-            </button>
-          )}
+            )}
+          </div>
         </div>
-      </div>
         {renderMapOverlay}
       </>
     );
