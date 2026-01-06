@@ -367,6 +367,64 @@ const ReyesMagosDashGame = () => {
       });
     };
 
+    const drawSoccerBall = ({ x, y, radius, rotation = 0 }) => {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rotation);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      const gradient = ctx.createRadialGradient(
+        -radius * 0.3,
+        -radius * 0.3,
+        radius * 0.3,
+        0,
+        0,
+        radius
+      );
+      gradient.addColorStop(0, "rgba(255,255,255,0.95)");
+      gradient.addColorStop(1, "rgba(203,213,225,0.75)");
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "#111827";
+      ctx.lineWidth = 1.3;
+      ctx.beginPath();
+      ctx.arc(0, 0, radius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      const drawPentagon = (size, offsetX, offsetY) => {
+        ctx.beginPath();
+        for (let i = 0; i < 5; i++) {
+          const angle = (Math.PI * 2 * i) / 5 - Math.PI / 2;
+          const px = offsetX + Math.cos(angle) * size;
+          const py = offsetY + Math.sin(angle) * size;
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.fillStyle = "#111827";
+        ctx.fill();
+      };
+
+      drawPentagon(radius * 0.28, 0, 0);
+      for (let i = 0; i < 5; i++) {
+        const angle = (Math.PI * 2 * i) / 5 - Math.PI / 2;
+        drawPentagon(
+          radius * 0.2,
+          Math.cos(angle) * radius * 0.55,
+          Math.sin(angle) * radius * 0.55
+        );
+      }
+
+      ctx.restore();
+    };
+
     const drawCharacter = () => {
       const x = character.x;
       const y = character.isDucking ? groundY - 25 : character.y;
@@ -381,9 +439,16 @@ const ReyesMagosDashGame = () => {
         ctx.fillStyle = "#1e3a8a";
         ctx.fillRect(x + 2, y + 6, width + 6, height - 6);
 
+        ctx.fillStyle = "#0b3a82";
+        ctx.fillRect(x + 2, y + 6, width + 6, 6);
+
         ctx.fillStyle = "#ffdbac";
         ctx.beginPath();
         ctx.arc(x + 18, y + 4, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#1f2937";
+        ctx.beginPath();
+        ctx.arc(x + 18, y + 1, 6, Math.PI, Math.PI * 2);
         ctx.fill();
 
         ctx.fillStyle = "#0f172a";
@@ -391,6 +456,8 @@ const ReyesMagosDashGame = () => {
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(x + 8, y + 20, 6, 6);
         ctx.fillRect(x + 18, y + 20, 6, 6);
+        ctx.fillStyle = "#fbbf24";
+        ctx.fillRect(x + 14, y + 18, 4, 10);
 
         ctx.fillStyle = "#f97316";
         ctx.beginPath();
@@ -400,16 +467,12 @@ const ReyesMagosDashGame = () => {
         ctx.closePath();
         ctx.fill();
 
-        ctx.fillStyle = "#ffffff";
-        ctx.beginPath();
-        ctx.arc(x + 34, y + height - 6, 6, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = "#0f172a";
-        ctx.lineWidth = 1;
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(x + 34, y + height - 6, 2, 0, Math.PI * 2);
-        ctx.stroke();
+        drawSoccerBall({
+          x: x + 34,
+          y: y + height - 6,
+          radius: 6,
+          rotation: ballRoll * 0.2,
+        });
       } else {
         ctx.fillStyle = "#1e3a8a";
         ctx.beginPath();
@@ -424,9 +487,26 @@ const ReyesMagosDashGame = () => {
         );
         ctx.fill();
 
+        ctx.fillStyle = "#1e40af";
+        ctx.beginPath();
+        ctx.ellipse(
+          x + width / 2,
+          y + 20,
+          width / 2 - 2,
+          height - 28,
+          0,
+          0,
+          Math.PI * 2
+        );
+        ctx.fill();
+
         ctx.fillStyle = "#ffdbac";
         ctx.beginPath();
         ctx.arc(x + width / 2, y + 8, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#1f2937";
+        ctx.beginPath();
+        ctx.arc(x + width / 2, y + 6, 8, Math.PI, Math.PI * 2);
         ctx.fill();
 
         ctx.fillStyle = "#0f172a";
@@ -434,6 +514,8 @@ const ReyesMagosDashGame = () => {
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(x + 10, y + 26, 6, 6);
         ctx.fillRect(x + 20, y + 26, 6, 6);
+        ctx.fillStyle = "#fbbf24";
+        ctx.fillRect(x + 16, y + 24, 4, 12);
 
         ctx.strokeStyle = "#111827";
         ctx.lineWidth = 4;
@@ -449,17 +531,16 @@ const ReyesMagosDashGame = () => {
         ctx.fillStyle = "#2563eb";
         ctx.fillRect(x + 4, y + height - 4, 10, 6);
         ctx.fillRect(x + width - 14, y + height - 4, 10, 6);
+        ctx.fillStyle = "#0f172a";
+        ctx.fillRect(x + 4, y + height - 1, 10, 3);
+        ctx.fillRect(x + width - 14, y + height - 1, 10, 3);
 
-        ctx.fillStyle = "#ffffff";
-        ctx.beginPath();
-        ctx.arc(x + width + 10, y + height + 2 + ballRoll, 7, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = "#111827";
-        ctx.lineWidth = 1.2;
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(x + width + 10, y + height + 2 + ballRoll, 2.5, 0, Math.PI * 2);
-        ctx.stroke();
+        drawSoccerBall({
+          x: x + width + 10,
+          y: y + height + 2 + ballRoll,
+          radius: 7,
+          rotation: ballRoll * 0.3,
+        });
       }
     };
 
@@ -559,28 +640,12 @@ const ReyesMagosDashGame = () => {
           ctx.stroke();
         }
       } else if (obs.type === "ball") {
-        ctx.fillStyle = "#ffffff";
-        ctx.beginPath();
-        ctx.arc(
-          obs.x + obs.width / 2,
-          obs.y + obs.height / 2,
-          obs.width / 2,
-          0,
-          Math.PI * 2
-        );
-        ctx.fill();
-        ctx.strokeStyle = "#111827";
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(
-          obs.x + obs.width / 2,
-          obs.y + obs.height / 2,
-          obs.width / 5,
-          0,
-          Math.PI * 2
-        );
-        ctx.stroke();
+        drawSoccerBall({
+          x: obs.x + obs.width / 2,
+          y: obs.y + obs.height / 2,
+          radius: obs.width / 2,
+          rotation: frameCount * 0.08,
+        });
       } else if (obs.type === "flag") {
         ctx.strokeStyle = "#94a3b8";
         ctx.lineWidth = 3;
