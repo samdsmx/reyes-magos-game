@@ -16,11 +16,11 @@ const ReyesMagosDashGame = () => {
   const beatCountRef = useRef(0);
 
   const treasureClues = {
-    1: "🏟️ PISTA 1: Calienta en el Estadio Central, cerca de la banca.",
-    2: "⚽ PISTA 2: Dribla por la banda y busca junto al banderín.",
-    3: "🎯 PISTA 3: Practica pases cortos junto al círculo central.",
-    4: "🥅 PISTA 4: La pista está detrás de la portería norte.",
-    5: "🏆 PISTA 5: ¡Celebración en la final! La copa te guía.",
+    1: "🏟️ Todo gran jugador empieza sin mapa. Primero aprende a moverse, luego a decidir.",
+    2: "⚽ Driblar no siempre es ir rápido, a veces es saber cuándo cambiar de dirección.",
+    3: "🎯 Los pases cortos construyen el juego, como las decisiones pequeñas construyen el futuro.",
+    4: "🥅 Un buen portero protege su meta, un buen jugador sabe qué vale la pena cuidar.",
+    5: "🏆 Has ganado experiencia suficiente. Los Reyes Magos confían en ti. MAPA DESBLOQUEADO",
   };
 
   const levels = [
@@ -584,7 +584,7 @@ const ReyesMagosDashGame = () => {
         obstacle.y = groundY - obstacle.height;
       } else if (type === "goalpost") {
         obstacle.width = 90;
-        obstacle.height = 70;
+        obstacle.height = 50;
         obstacle.y = groundY - obstacle.height;
       } else if (type === "ball") {
         obstacle.width = 26;
@@ -738,8 +738,10 @@ const ReyesMagosDashGame = () => {
         };
 
         const hitsPillar =
-          isRectCollision(characterRect, leftPillar) ||
-          isRectCollision(characterRect, rightPillar);
+          !character.isDucking && 
+          (isRectCollision(characterRect, leftPillar) ||
+           isRectCollision(characterRect, rightPillar));
+           
         const hitsTopBar =
           !character.isDucking && isRectCollision(characterRect, topBar);
 
@@ -947,14 +949,7 @@ const ReyesMagosDashGame = () => {
                 <kbd className="px-2 sm:px-3 py-1 bg-white border-2 border-gray-300 rounded-lg shadow">
                   ↓
                 </kbd>{" "}
-                = Agacharse (mantén pulsado en móvil)
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="text-2xl">📱</span>
-                <span>
-                  En pantallas pequeñas usa los botones{" "}
-                  <strong>“Saltar”</strong> y <strong>“Agacharse”</strong>.
-                </span>
+                = Agacharse (mantén pulsado en móvil) (para porterías)
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-2xl">🎯</span>
@@ -968,30 +963,6 @@ const ReyesMagosDashGame = () => {
           </div>
 
           <div className="mb-6">
-            <h2 className="font-bold text-lg sm:text-xl mb-3 text-blue-800">
-              🧭 Modo de juego
-            </h2>
-            <div className="grid sm:grid-cols-3 gap-3 mb-5">
-              {[
-                { key: "story", label: "Historia" },
-                { key: "endless", label: "Endless" },
-                { key: "ritmo", label: "Ritmo" },
-              ].map((mode) => (
-                <button
-                  key={mode.key}
-                  onClick={() => setGameMode(mode.key)}
-                  className={`p-3 rounded-xl font-bold border-2 transition ${
-                    gameMode === mode.key
-                      ? "bg-blue-600 text-white border-blue-700"
-                      : "bg-white text-blue-700 border-blue-200 hover:border-blue-400"
-                  }`}
-                >
-                  {mode.label}
-                </button>
-              ))}
-            </div>
-
-            {gameMode === "story" ? (
               <div className="space-y-3">
                 {levels.map((level, index) => {
                   const levelNum = index + 1;
@@ -1023,23 +994,6 @@ const ReyesMagosDashGame = () => {
                   );
                 })}
               </div>
-            ) : (
-              <div className="space-y-3">
-                <p className="text-sm sm:text-base text-gray-700">
-                  {gameMode === "endless"
-                    ? "Corre sin fin y observa cómo la velocidad aumenta."
-                    : "La velocidad pulsa con el beat para un ritmo tipo arcade."}
-                </p>
-                <button
-                  onClick={() => startMode(gameMode)}
-                  className="w-full p-3 sm:p-4 rounded-xl font-bold text-base sm:text-lg transition-all transform hover:scale-105 shadow-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700"
-                >
-                  {gameMode === "endless"
-                    ? "Iniciar Endless"
-                    : "Iniciar Ritmo"}
-                </button>
-              </div>
-            )}
           </div>
 
           {unlockedLevels.length > 0 && (
@@ -1147,25 +1101,6 @@ const ReyesMagosDashGame = () => {
         className="shadow-2xl rounded-lg bg-gray-800 touch-none"
         style={{ maxWidth: "100%", maxHeight: "100%" }}
       />
-      <div className="md:hidden absolute inset-x-0 bottom-6 flex items-center justify-between px-6">
-        <button
-          type="button"
-          className="px-6 py-4 bg-blue-600 text-white rounded-2xl text-lg font-bold shadow-xl"
-          onPointerDown={() => controlsRef.current.jump()}
-        >
-          Saltar
-        </button>
-        <button
-          type="button"
-          className="px-6 py-4 bg-purple-600 text-white rounded-2xl text-lg font-bold shadow-xl"
-          onPointerDown={() => controlsRef.current.duck(true)}
-          onPointerUp={() => controlsRef.current.duck(false)}
-          onPointerCancel={() => controlsRef.current.duck(false)}
-          onPointerLeave={() => controlsRef.current.duck(false)}
-        >
-          Agacharse
-        </button>
-      </div>
     </div>
   );
 };
