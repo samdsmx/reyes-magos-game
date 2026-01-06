@@ -528,41 +528,21 @@ const ReyesMagosDashGame = () => {
 
       distance += levelConfig.speed;
 
-      ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
-      ctx.fillRect(10, 10, 280, 110);
+      const hudX = 16;
+      const hudY = 16;
+      const hudWidth = 220;
+      const hudHeight = 74;
 
-      ctx.fillStyle = "#ffd700";
-      ctx.font = "bold 22px Arial";
-      ctx.fillText(`⚽ ${levels[currentLevel - 1].name}`, 20, 35);
+      ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+      ctx.fillRect(hudX, hudY, hudWidth, hudHeight);
 
       ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 18px Arial";
-      ctx.fillText(
-        `📏 Distancia: ${Math.floor(distance)}/${levelDistance}`,
-        20,
-        60
-      );
-      ctx.fillText(`🥅 Goles: ${score}`, 20, 85);
+      ctx.font = "bold 24px Arial";
+      ctx.fillText(`📏 ${Math.floor(distance)}m`, hudX + 12, hudY + 32);
 
-      ctx.fillStyle = "#1a1f4d";
-      ctx.fillRect(20, 95, 260, 20);
-
-      const progress = (distance / levelDistance) * 260;
-      const progressGradient = ctx.createLinearGradient(
-        20,
-        95,
-        20 + progress,
-        95
-      );
-      progressGradient.addColorStop(0, "#ffd700");
-      progressGradient.addColorStop(0.5, "#ff6347");
-      progressGradient.addColorStop(1, "#c41e3a");
-      ctx.fillStyle = progressGradient;
-      ctx.fillRect(20, 95, progress, 20);
-
-      ctx.strokeStyle = "#ffd700";
-      ctx.lineWidth = 2;
-      ctx.strokeRect(20, 95, 260, 20);
+      ctx.fillStyle = "#ffd700";
+      ctx.font = "bold 24px Arial";
+      ctx.fillText(`🥅 ${score}`, hudX + 12, hudY + 60);
 
       frameCount++;
 
@@ -614,36 +594,36 @@ const ReyesMagosDashGame = () => {
 
   if (gameState === "menu") {
     return (
-      <div className="w-full min-h-screen bg-gradient-to-b from-blue-900 via-purple-900 to-blue-900 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full border-4 border-yellow-400">
-          <div className="text-center mb-6">
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-yellow-500 via-red-600 to-purple-600 bg-clip-text text-transparent mb-2">
+      <div className="w-full min-h-screen bg-gradient-to-b from-blue-900 via-purple-900 to-blue-900 flex items-center justify-center p-4 sm:p-6">
+        <div className="bg-white rounded-2xl shadow-2xl p-5 sm:p-8 max-w-2xl w-full border-4 border-yellow-400">
+          <div className="text-center mb-5 sm:mb-6">
+            <h1 className="text-3xl sm:text-5xl font-bold bg-gradient-to-r from-yellow-500 via-red-600 to-purple-600 bg-clip-text text-transparent mb-2">
               ⚽ DESAFÍO FUTBOLERO ⚽
             </h1>
-            <p className="text-xl text-purple-700 font-semibold">
+            <p className="text-base sm:text-xl text-purple-700 font-semibold">
               Carrera de obstáculos en el estadio
             </p>
           </div>
 
-          <div className="mb-6 p-4 bg-gradient-to-r from-yellow-50 to-red-50 border-3 border-yellow-400 rounded-xl shadow-inner">
-            <h2 className="font-bold text-xl mb-3 text-red-700">
+          <div className="mb-6 p-4 sm:p-5 bg-gradient-to-r from-yellow-50 to-red-50 border-3 border-yellow-400 rounded-xl shadow-inner">
+            <h2 className="font-bold text-lg sm:text-xl mb-3 text-red-700">
               🎮 Cómo Jugar:
             </h2>
-            <ul className="text-base space-y-2">
+            <ul className="text-sm sm:text-base space-y-2">
               <li className="flex items-center gap-2">
                 <span className="text-2xl">⬆️</span>
-                <kbd className="px-3 py-1 bg-white border-2 border-gray-300 rounded-lg shadow">
+                <kbd className="px-2 sm:px-3 py-1 bg-white border-2 border-gray-300 rounded-lg shadow">
                   ESPACIO
                 </kbd>{" "}
                 o
-                <kbd className="px-3 py-1 bg-white border-2 border-gray-300 rounded-lg shadow">
+                <kbd className="px-2 sm:px-3 py-1 bg-white border-2 border-gray-300 rounded-lg shadow">
                   ↑
                 </kbd>{" "}
                 o<strong className="text-blue-600">TOQUE</strong> = Saltar
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-2xl">⬇️</span>
-                <kbd className="px-3 py-1 bg-white border-2 border-gray-300 rounded-lg shadow">
+                <kbd className="px-2 sm:px-3 py-1 bg-white border-2 border-gray-300 rounded-lg shadow">
                   ↓
                 </kbd>{" "}
                 = Agacharse (mantén pulsado en móvil)
@@ -678,7 +658,7 @@ const ReyesMagosDashGame = () => {
                   key={levelNum}
                   onClick={() => isUnlocked && startLevel(levelNum)}
                   disabled={!isUnlocked}
-                  className={`w-full p-4 rounded-xl font-bold text-lg transition-all transform hover:scale-105 shadow-lg ${
+                  className={`w-full p-3 sm:p-4 rounded-xl font-bold text-base sm:text-lg transition-all transform hover:scale-105 shadow-lg ${
                     isCompleted
                       ? "bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700"
                       : isUnlocked
@@ -699,8 +679,8 @@ const ReyesMagosDashGame = () => {
           </div>
 
           {unlockedLevels.length > 0 && (
-            <div className="mb-4 p-4 bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-amber-400 rounded-xl shadow-lg">
-              <h3 className="font-bold text-xl mb-3 text-amber-800 flex items-center gap-2">
+            <div className="mb-4 p-4 sm:p-5 bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-amber-400 rounded-xl shadow-lg">
+              <h3 className="font-bold text-lg sm:text-xl mb-3 text-amber-800 flex items-center gap-2">
                 🗺️ Pistas Desbloqueadas:
               </h3>
               <div className="space-y-2">
@@ -709,9 +689,9 @@ const ReyesMagosDashGame = () => {
                   .map((level) => (
                     <div
                       key={level}
-                      className="p-3 bg-white rounded-lg border-2 border-amber-200 shadow"
+                      className="p-3 sm:p-4 bg-white rounded-lg border-2 border-amber-200 shadow"
                     >
-                      <p className="text-base font-mono">
+                      <p className="text-sm sm:text-base font-mono">
                         {treasureClues[level]}
                       </p>
                     </div>
@@ -723,7 +703,7 @@ const ReyesMagosDashGame = () => {
           {unlockedLevels.length > 0 && (
             <button
               onClick={resetProgress}
-              className="w-full p-3 bg-red-500 text-white rounded-xl hover:bg-red-600 flex items-center justify-center gap-2 font-bold shadow-lg"
+              className="w-full p-3 sm:p-4 bg-red-500 text-white rounded-xl hover:bg-red-600 flex items-center justify-center gap-2 font-bold text-sm sm:text-base shadow-lg"
             >
               <RotateCcw className="w-5 h-5" />
               Reiniciar Temporada
