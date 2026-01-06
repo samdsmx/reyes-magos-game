@@ -704,9 +704,9 @@ const ReyesMagosDashGame = () => {
       const charTop = charY + 5;
       const charBottom = charY + charHeight - 5;
 
-      if (obs.type === "arch") {
-        const pillarWidth = 16;
-        const topHeight = 70;
+      if (obs.type === "goalpost") {
+        const pillarWidth = 14;
+        const topHeight = 12;
         const padding = 6;
 
         const characterRect = {
