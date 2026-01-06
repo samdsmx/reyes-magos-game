@@ -9,6 +9,7 @@ const ReyesMagosDashGame = () => {
   const [gameMode, setGameMode] = useState("story");
   const [unlockedLevels, setUnlockedLevels] = useState([]);
   const [score, setScore] = useState(0);
+  const [isMapOpen, setIsMapOpen] = useState(false);
   const gameLoopRef = useRef(null);
   const audioContextRef = useRef(null);
   const musicIntervalRef = useRef(null);
@@ -45,6 +46,10 @@ const ReyesMagosDashGame = () => {
     { name: "Semifinal", speed: 4, obstacleFreq: 150, difficulty: 0.8 },
     { name: "La Gran Final", speed: 4.5, obstacleFreq: 140, difficulty: 0.9 },
   ];
+
+  const mapImagePath = "/mapa-reyes-magos.png";
+  const allLevelsCompleted =
+    unlockedLevels.includes(levels.length) || currentLevel === levels.length;
 
   const bpm = 124;
   const beatIntervalMs = 60000 / bpm;
@@ -907,10 +912,28 @@ const ReyesMagosDashGame = () => {
     setGameState("menu");
   };
 
+  const renderMapOverlay = isMapOpen ? (
+    <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
+      <button
+        type="button"
+        onClick={() => setIsMapOpen(false)}
+        className="absolute top-4 right-4 px-4 py-2 bg-white text-gray-900 rounded-full font-bold shadow-lg hover:bg-gray-100"
+      >
+        ✕ Cerrar
+      </button>
+      <img
+        src={mapImagePath}
+        alt="Mapa completo de los Reyes Magos"
+        className="max-h-full max-w-full object-contain rounded-2xl shadow-2xl"
+      />
+    </div>
+  ) : null;
+
   if (gameState === "menu") {
     return (
-      <div className="w-full min-h-screen bg-gradient-to-b from-blue-900 via-purple-900 to-blue-900 flex items-center justify-center p-4 sm:p-6">
-        <div className="bg-white rounded-2xl shadow-2xl p-5 sm:p-8 max-w-2xl w-full border-4 border-yellow-400">
+      <>
+        <div className="w-full min-h-screen bg-gradient-to-b from-blue-900 via-purple-900 to-blue-900 flex items-center justify-center p-4 sm:p-6">
+          <div className="bg-white rounded-2xl shadow-2xl p-5 sm:p-8 max-w-2xl w-full border-4 border-yellow-400">
 <div className="text-center mb-5 sm:mb-6">
   {/* Contenedor flex para alinear balones y título */}
   <div className="flex items-center justify-center gap-4 mb-2">
@@ -1018,6 +1041,25 @@ const ReyesMagosDashGame = () => {
             </div>
           )}
 
+          {allLevelsCompleted && (
+            <div className="mb-4 p-4 sm:p-5 bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-300 rounded-xl shadow-lg">
+              <h3 className="font-bold text-lg sm:text-xl mb-2 text-emerald-800">
+                🗺️ Mapa Completo Desbloqueado
+              </h3>
+              <p className="text-sm sm:text-base text-emerald-900 mb-3">
+                Has terminado todas las fases. Puedes abrir el mapa en pantalla
+                completa.
+              </p>
+              <button
+                type="button"
+                onClick={() => setIsMapOpen(true)}
+                className="text-emerald-700 font-semibold underline underline-offset-4 hover:text-emerald-900"
+              >
+                Ver mapa a pantalla completa
+              </button>
+            </div>
+          )}
+
           {unlockedLevels.length > 0 && (
             <button
               onClick={resetProgress}
@@ -1029,36 +1071,59 @@ const ReyesMagosDashGame = () => {
           )}
         </div>
       </div>
+        {renderMapOverlay}
+      </>
     );
   }
 
   if (gameState === "levelComplete") {
     return (
-      <div className="w-full h-screen bg-gradient-to-b from-green-600 via-emerald-700 to-green-800 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border-4 border-yellow-400">
-          <Trophy className="w-20 h-20 mx-auto text-yellow-500 mb-4" />
-          <h2 className="text-3xl font-bold text-green-600 mb-2">
-            ¡Fase Superada!
-          </h2>
-          <p className="text-xl mb-4">Marcador Final: {score}</p>
+      <>
+        <div className="w-full h-screen bg-gradient-to-b from-green-600 via-emerald-700 to-green-800 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center border-4 border-yellow-400">
+            <Trophy className="w-20 h-20 mx-auto text-yellow-500 mb-4" />
+            <h2 className="text-3xl font-bold text-green-600 mb-2">
+              ¡Fase Superada!
+            </h2>
+            <p className="text-xl mb-4">Marcador Final: {score}</p>
 
-          <div className="bg-yellow-50 p-4 rounded-xl border-2 border-yellow-200 mb-6">
-            <h3 className="font-bold text-yellow-800 mb-2">
-              📜 Pista Desbloqueada:
-            </h3>
-            <p className="text-lg italic font-serif text-gray-700">
-              {treasureClues[currentLevel]}
-            </p>
+            <div className="bg-yellow-50 p-4 rounded-xl border-2 border-yellow-200 mb-6">
+              <h3 className="font-bold text-yellow-800 mb-2">
+                📜 Pista Desbloqueada:
+              </h3>
+              <p className="text-lg italic font-serif text-gray-700">
+                {treasureClues[currentLevel]}
+              </p>
+            </div>
+
+            {allLevelsCompleted && (
+              <div className="bg-emerald-50 p-4 rounded-xl border-2 border-emerald-200 mb-6">
+                <h3 className="font-bold text-emerald-700 mb-2">
+                  🗺️ Mapa Completo
+                </h3>
+                <p className="text-sm text-emerald-800 mb-3">
+                  Has completado todos los niveles. El mapa está listo.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setIsMapOpen(true)}
+                  className="text-emerald-700 font-semibold underline underline-offset-4 hover:text-emerald-900"
+                >
+                  Ver mapa a pantalla completa
+                </button>
+              </div>
+            )}
+
+            <button
+              onClick={() => setGameState("menu")}
+              className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold text-lg hover:bg-blue-700 transition shadow-lg"
+            >
+              Volver al Mapa
+            </button>
           </div>
-
-          <button
-            onClick={() => setGameState("menu")}
-            className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold text-lg hover:bg-blue-700 transition shadow-lg"
-          >
-            Volver al Mapa
-          </button>
         </div>
-      </div>
+        {renderMapOverlay}
+      </>
     );
   }
 
