@@ -3,6 +3,7 @@ import { Trophy, RotateCcw } from "lucide-react";
 
 const ReyesMagosDashGame = () => {
   const canvasRef = useRef(null);
+  const controlsRef = useRef({ jump: () => {}, duck: () => {} });
   const [gameState, setGameState] = useState("menu");
   const [currentLevel, setCurrentLevel] = useState(1);
   const [unlockedLevels, setUnlockedLevels] = useState([]);
@@ -73,6 +74,7 @@ const ReyesMagosDashGame = () => {
     let stars = [];
     let frameCount = 0;
     let distance = 0;
+    let hasCollided = false;
     const groundY = 430;
     const levelDistance = 5000;
 
@@ -89,6 +91,9 @@ const ReyesMagosDashGame = () => {
       if (!character.isJumping && !character.isDucking) {
         character.velocityY = character.jumpPower;
         character.isJumping = true;
+        if (navigator.vibrate) {
+          navigator.vibrate(30);
+        }
       }
     };
 
@@ -115,9 +120,38 @@ const ReyesMagosDashGame = () => {
 
     const handleClick = () => jump();
 
+    let pressTimeout;
+    let pressTriggered = false;
+
+    const handlePressStart = (event) => {
+      event.preventDefault();
+      pressTriggered = false;
+      clearTimeout(pressTimeout);
+      pressTimeout = setTimeout(() => {
+        pressTriggered = true;
+        duck(true);
+      }, 200);
+    };
+
+    const handlePressEnd = (event) => {
+      event.preventDefault();
+      clearTimeout(pressTimeout);
+      if (pressTriggered) {
+        duck(false);
+        pressTriggered = false;
+      } else {
+        jump();
+      }
+    };
+
     document.addEventListener("keydown", handleKeyDown);
     document.addEventListener("keyup", handleKeyUp);
     canvas.addEventListener("click", handleClick);
+    canvas.addEventListener("pointerdown", handlePressStart);
+    canvas.addEventListener("pointerup", handlePressEnd);
+    canvas.addEventListener("pointercancel", handlePressEnd);
+
+    controlsRef.current = { jump, duck };
 
     const drawBackground = () => {
       const gradient = ctx.createLinearGradient(0, 0, 0, groundY);
@@ -476,6 +510,10 @@ const ReyesMagosDashGame = () => {
         drawObstacle(obs);
 
         if (checkCollision(obs)) {
+          if (!hasCollided && navigator.vibrate) {
+            navigator.vibrate([120, 40, 120]);
+            hasCollided = true;
+          }
           setGameState("gameOver");
           return false;
         }
@@ -551,6 +589,10 @@ const ReyesMagosDashGame = () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.removeEventListener("keyup", handleKeyUp);
       canvas.removeEventListener("click", handleClick);
+      canvas.removeEventListener("pointerdown", handlePressStart);
+      canvas.removeEventListener("pointerup", handlePressEnd);
+      canvas.removeEventListener("pointercancel", handlePressEnd);
+      clearTimeout(pressTimeout);
       if (gameLoopRef.current) {
         cancelAnimationFrame(gameLoopRef.current);
       }
@@ -597,14 +639,21 @@ const ReyesMagosDashGame = () => {
                 <kbd className="px-3 py-1 bg-white border-2 border-gray-300 rounded-lg shadow">
                   ↑
                 </kbd>{" "}
-                o<strong className="text-blue-600">CLIC</strong> = Saltar
+                o<strong className="text-blue-600">TOQUE</strong> = Saltar
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-2xl">⬇️</span>
                 <kbd className="px-3 py-1 bg-white border-2 border-gray-300 rounded-lg shadow">
                   ↓
                 </kbd>{" "}
-                = Agacharse (para defensas y porterías)
+                = Agacharse (mantén pulsado en móvil)
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-2xl">📱</span>
+                <span>
+                  En pantallas pequeñas usa los botones{" "}
+                  <strong>“Saltar”</strong> y <strong>“Agacharse”</strong>.
+                </span>
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-2xl">🎯</span>
@@ -748,12 +797,31 @@ const ReyesMagosDashGame = () => {
 
   // Renderizado del juego (Canvas) cuando gameState === 'playing'
   return (
-    <div className="w-full h-screen bg-gray-900 flex items-center justify-center overflow-hidden">
+    <div className="w-full h-screen bg-gray-900 flex items-center justify-center overflow-hidden relative">
       <canvas
         ref={canvasRef}
-        className="shadow-2xl rounded-lg bg-gray-800"
+        className="shadow-2xl rounded-lg bg-gray-800 touch-none"
         style={{ maxWidth: "100%", maxHeight: "100%" }}
       />
+      <div className="md:hidden absolute inset-x-0 bottom-6 flex items-center justify-between px-6">
+        <button
+          type="button"
+          className="px-6 py-4 bg-blue-600 text-white rounded-2xl text-lg font-bold shadow-xl"
+          onPointerDown={() => controlsRef.current.jump()}
+        >
+          Saltar
+        </button>
+        <button
+          type="button"
+          className="px-6 py-4 bg-purple-600 text-white rounded-2xl text-lg font-bold shadow-xl"
+          onPointerDown={() => controlsRef.current.duck(true)}
+          onPointerUp={() => controlsRef.current.duck(false)}
+          onPointerCancel={() => controlsRef.current.duck(false)}
+          onPointerLeave={() => controlsRef.current.duck(false)}
+        >
+          Agacharse
+        </button>
+      </div>
     </div>
   );
 };
