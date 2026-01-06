@@ -594,7 +594,13 @@ const ReyesMagosDashGame = () => {
       } else if (type === "ball") {
         obstacle.width = 26;
         obstacle.height = 26;
-        obstacle.y = groundY - obstacle.height;
+        const isHigh = Math.random() > 0.5;
+
+        if (isHigh) {
+           obstacle.y = groundY - 55; 
+        } else {
+            obstacle.y = groundY - obstacle.height;
+        }
       } else if (type === "flag") {
         obstacle.width = 30;
         obstacle.height = 60;
@@ -897,14 +903,6 @@ const ReyesMagosDashGame = () => {
     setGameState("playing");
   };
 
-  const startMode = (mode) => {
-    setCurrentLevel(1);
-    setScore(0);
-    setGameMode(mode);
-    startMusic(mode);
-    setGameState("playing");
-  };
-
   const resetProgress = () => {
     localStorage.removeItem("reyesMagosProgress");
     setUnlockedLevels([]);
@@ -1118,7 +1116,7 @@ const ReyesMagosDashGame = () => {
               onClick={() => setGameState("menu")}
               className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold text-lg hover:bg-blue-700 transition shadow-lg"
             >
-              Volver al Mapa
+              Volver al Menu
             </button>
           </div>
         </div>
