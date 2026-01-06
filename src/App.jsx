@@ -1048,8 +1048,7 @@ const ReyesMagosDashGame = () => {
                   🗺️ Mapa Completo Desbloqueado
                 </h3>
                 <p className="text-sm sm:text-base text-emerald-900 mb-3">
-                  Has terminado todas las fases. Abre el mapa y colecta las 4 pistas
-                  completa.
+                  Has terminado todas las fases. Abre el mapa y colecta las 4 pistas.
                 </p>
                 <button
                   type="button"
