@@ -886,14 +886,22 @@ const ReyesMagosDashGame = () => {
     return (
       <div className="w-full min-h-screen bg-gradient-to-b from-blue-900 via-purple-900 to-blue-900 flex items-center justify-center p-4 sm:p-6">
         <div className="bg-white rounded-2xl shadow-2xl p-5 sm:p-8 max-w-2xl w-full border-4 border-yellow-400">
-          <div className="text-center mb-5 sm:mb-6">
-            <h1 className="text-3xl sm:text-5xl font-bold bg-gradient-to-r from-yellow-500 via-red-600 to-purple-600 bg-clip-text text-transparent mb-2">
-              ⚽ DESAFÍO FUTBOLERO ⚽
-            </h1>
-            <p className="text-base sm:text-xl text-purple-700 font-semibold">
-              Carrera de obstáculos en el estadio
-            </p>
-          </div>
+<div className="text-center mb-5 sm:mb-6">
+  {/* Contenedor flex para alinear balones y título */}
+  <div className="flex items-center justify-center gap-4 mb-2">
+    <span className="text-4xl sm:text-6xl">⚽</span>
+    
+    <h1 className="text-3xl sm:text-5xl font-bold bg-gradient-to-r from-yellow-500 via-red-600 to-purple-600 bg-clip-text text-transparent">
+      DESAFÍO FUTBOLERO
+    </h1>
+    
+    <span className="text-4xl sm:text-6xl">⚽</span>
+  </div>
+
+  <p className="text-base sm:text-xl text-purple-700 font-semibold">
+    Carrera de obstáculos de los Reyes Magos
+  </p>
+</div>
 
           <div className="mb-6 p-4 sm:p-5 bg-gradient-to-r from-yellow-50 to-red-50 border-3 border-yellow-400 rounded-xl shadow-inner">
             <h2 className="font-bold text-lg sm:text-xl mb-3 text-red-700">
