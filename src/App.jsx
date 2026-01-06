@@ -598,6 +598,15 @@ const ReyesMagosDashGame = () => {
       }
     };
 
+    const isRectCollision = (a, b) => {
+      return (
+        a.right > b.left &&
+        a.left < b.right &&
+        a.bottom > b.top &&
+        a.top < b.bottom
+      );
+    };
+
     const checkCollision = (obs) => {
       const charWidth = character.width;
       const charHeight = character.isDucking
@@ -609,6 +618,46 @@ const ReyesMagosDashGame = () => {
       const charRight = character.x + charWidth - 5;
       const charTop = charY + 5;
       const charBottom = charY + charHeight - 5;
+
+      if (obs.type === "arch") {
+        const pillarWidth = 16;
+        const topHeight = 40;
+        const padding = 6;
+
+        const characterRect = {
+          left: charLeft,
+          right: charRight,
+          top: charTop,
+          bottom: charBottom,
+        };
+
+        const leftPillar = {
+          left: obs.x + padding,
+          right: obs.x + padding + pillarWidth,
+          top: obs.y + topHeight,
+          bottom: groundY,
+        };
+
+        const rightPillar = {
+          left: obs.x + obs.width - padding - pillarWidth,
+          right: obs.x + obs.width - padding,
+          top: obs.y + topHeight,
+          bottom: groundY,
+        };
+
+        const topBar = {
+          left: obs.x + padding,
+          right: obs.x + obs.width - padding,
+          top: obs.y + padding,
+          bottom: obs.y + topHeight,
+        };
+
+        return (
+          isRectCollision(characterRect, leftPillar) ||
+          isRectCollision(characterRect, rightPillar) ||
+          isRectCollision(characterRect, topBar)
+        );
+      }
 
       const obsLeft = obs.x + 5;
       const obsRight = obs.x + obs.width - 5;
