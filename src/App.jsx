@@ -6,9 +6,14 @@ const ReyesMagosDashGame = () => {
   const controlsRef = useRef({ jump: () => {}, duck: () => {} });
   const [gameState, setGameState] = useState("menu");
   const [currentLevel, setCurrentLevel] = useState(1);
+  const [gameMode, setGameMode] = useState("story");
   const [unlockedLevels, setUnlockedLevels] = useState([]);
   const [score, setScore] = useState(0);
   const gameLoopRef = useRef(null);
+  const audioContextRef = useRef(null);
+  const musicIntervalRef = useRef(null);
+  const beatStartRef = useRef(0);
+  const beatCountRef = useRef(0);
 
   const treasureClues = {
     1: "🏟️ PISTA 1: Calienta en el Estadio Central, cerca de la banca.",
@@ -41,6 +46,75 @@ const ReyesMagosDashGame = () => {
     { name: "La Gran Final", speed: 4.5, obstacleFreq: 140, difficulty: 0.9 },
   ];
 
+  const bpm = 124;
+  const beatIntervalMs = 60000 / bpm;
+
+  const getAudioContext = () => {
+    if (!audioContextRef.current) {
+      audioContextRef.current = new AudioContext();
+    }
+    return audioContextRef.current;
+  };
+
+  const playTone = ({ frequency, duration, type, gain }) => {
+    const context = getAudioContext();
+    const oscillator = context.createOscillator();
+    const amp = context.createGain();
+
+    oscillator.type = type;
+    oscillator.frequency.value = frequency;
+    amp.gain.value = gain;
+    oscillator.connect(amp);
+    amp.connect(context.destination);
+
+    const now = context.currentTime;
+    amp.gain.setValueAtTime(gain, now);
+    amp.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+    oscillator.start(now);
+    oscillator.stop(now + duration);
+  };
+
+  const playJumpSound = () => {
+    playTone({ frequency: 520, duration: 0.15, type: "triangle", gain: 0.1 });
+  };
+
+  const playHitSound = () => {
+    playTone({ frequency: 160, duration: 0.3, type: "sawtooth", gain: 0.12 });
+  };
+
+  const playBeatSound = (accent = false) => {
+    playTone({
+      frequency: accent ? 740 : 520,
+      duration: accent ? 0.1 : 0.07,
+      type: accent ? "square" : "sine",
+      gain: accent ? 0.06 : 0.04,
+    });
+  };
+
+  const startMusic = (mode) => {
+    const context = getAudioContext();
+    context.resume();
+    if (musicIntervalRef.current) {
+      clearInterval(musicIntervalRef.current);
+    }
+    beatCountRef.current = 0;
+    beatStartRef.current = performance.now();
+    musicIntervalRef.current = setInterval(() => {
+      const isAccent = beatCountRef.current % 4 === 0;
+      if (mode === "ritmo" || mode === "story") {
+        playBeatSound(isAccent);
+      }
+      beatCountRef.current += 1;
+    }, beatIntervalMs);
+  };
+
+  const stopMusic = () => {
+    if (musicIntervalRef.current) {
+      clearInterval(musicIntervalRef.current);
+      musicIntervalRef.current = null;
+    }
+  };
+
   useEffect(() => {
     const saved = localStorage.getItem("reyesMagosProgress");
     if (saved) {
@@ -49,14 +123,26 @@ const ReyesMagosDashGame = () => {
   }, []);
 
   useEffect(() => {
-    if (gameState !== "playing") return;
+    if (gameState !== "playing") {
+      stopMusic();
+      return;
+    }
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     canvas.width = 1000;
     canvas.height = 500;
 
-    const levelConfig = levels[currentLevel - 1];
+    const storyConfig = levels[currentLevel - 1];
+    const modeConfig =
+      gameMode === "story"
+        ? storyConfig
+        : {
+            name: gameMode === "endless" ? "Endless" : "Ritmo",
+            speed: 3.2,
+            obstacleFreq: 170,
+            difficulty: 0.7,
+          };
 
     let character = {
       x: 120,
@@ -72,6 +158,7 @@ const ReyesMagosDashGame = () => {
 
     let obstacles = [];
     let stars = [];
+    let particles = [];
     let frameCount = 0;
     let distance = 0;
     let hasCollided = false;
@@ -91,6 +178,7 @@ const ReyesMagosDashGame = () => {
       if (!character.isJumping && !character.isDucking) {
         character.velocityY = character.jumpPower;
         character.isJumping = true;
+        playJumpSound();
         if (navigator.vibrate) {
           navigator.vibrate(30);
         }
@@ -153,6 +241,27 @@ const ReyesMagosDashGame = () => {
 
     controlsRef.current = { jump, duck };
 
+    const drawParallaxLayer = (color, speedFactor, height, opacity) => {
+      const offset = (distance * speedFactor) % canvas.width;
+      ctx.fillStyle = color;
+      ctx.globalAlpha = opacity;
+      ctx.beginPath();
+      ctx.moveTo(-offset, groundY - height);
+      for (let x = -offset; x <= canvas.width + 200; x += 200) {
+        ctx.quadraticCurveTo(
+          x + 100,
+          groundY - height - 20,
+          x + 200,
+          groundY - height
+        );
+      }
+      ctx.lineTo(canvas.width + 200, groundY);
+      ctx.lineTo(-200, groundY);
+      ctx.closePath();
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    };
+
     const drawBackground = () => {
       const gradient = ctx.createLinearGradient(0, 0, 0, groundY);
       gradient.addColorStop(0, "#0a0e27");
@@ -161,8 +270,12 @@ const ReyesMagosDashGame = () => {
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, groundY);
 
+      drawParallaxLayer("#1d2548", 0.15, 190, 0.9);
+      drawParallaxLayer("#28315a", 0.35, 140, 0.85);
+      drawParallaxLayer("#39406e", 0.55, 90, 0.8);
+
       stars.forEach((star) => {
-        star.x -= star.speed;
+        star.x -= star.speed * 1.4;
         if (star.x < 0) star.x = canvas.width;
 
         const twinkle = Math.sin(frameCount * 0.1 + star.x) * 0.5 + 0.5;
@@ -201,7 +314,7 @@ const ReyesMagosDashGame = () => {
       ctx.fillStyle = "rgba(210, 180, 140, 0.3)";
       ctx.beginPath();
       ctx.ellipse(
-        200 - (distance % 400),
+        200 - (distance * 0.9) % 400,
         groundY + 10,
         100,
         20,
@@ -212,7 +325,7 @@ const ReyesMagosDashGame = () => {
       ctx.fill();
       ctx.beginPath();
       ctx.ellipse(
-        600 - (distance % 400),
+        600 - (distance * 0.9) % 400,
         groundY + 15,
         120,
         25,
@@ -221,6 +334,37 @@ const ReyesMagosDashGame = () => {
         Math.PI * 2
       );
       ctx.fill();
+    };
+
+    const spawnSpark = () => {
+      const originX = character.x + character.width + 5;
+      const originY = character.y + character.height / 2;
+      for (let i = 0; i < 10; i++) {
+        particles.push({
+          x: originX,
+          y: originY + (Math.random() - 0.5) * 20,
+          vx: 1 + Math.random() * 2.5,
+          vy: (Math.random() - 0.5) * 2,
+          life: 24 + Math.random() * 10,
+          size: 2 + Math.random() * 2,
+          color: `rgba(255, ${180 + Math.random() * 60}, 80, 1)`,
+        });
+      }
+    };
+
+    const drawParticles = () => {
+      particles = particles.filter((particle) => particle.life > 0);
+      particles.forEach((particle) => {
+        particle.x += particle.vx;
+        particle.y += particle.vy;
+        particle.vy += 0.05;
+        particle.life -= 1;
+        const alpha = Math.max(particle.life / 30, 0);
+        ctx.fillStyle = particle.color.replace(", 1)", `, ${alpha})`);
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
     };
 
     const drawCharacter = () => {
@@ -483,6 +627,15 @@ const ReyesMagosDashGame = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawBackground();
 
+      const beatPhase =
+        ((performance.now() - beatStartRef.current) % beatIntervalMs) /
+        beatIntervalMs;
+      const rhythmBoost =
+        gameMode === "ritmo" ? 1 + Math.sin(beatPhase * Math.PI * 2) * 0.35 : 1;
+      const speedRamp =
+        gameMode === "story" ? 0 : Math.min(distance / 2200, 3);
+      const currentSpeed = (modeConfig.speed + speedRamp) * rhythmBoost;
+
       character.velocityY += character.gravity;
       character.y += character.velocityY;
 
@@ -493,10 +646,11 @@ const ReyesMagosDashGame = () => {
       }
 
       drawCharacter();
+      drawParticles();
 
       if (
         frameCount %
-          Math.floor(levelConfig.obstacleFreq / levelConfig.difficulty) ===
+          Math.floor(modeConfig.obstacleFreq / modeConfig.difficulty) ===
         0
       ) {
         const lastObstacle = obstacles[obstacles.length - 1];
@@ -506,7 +660,7 @@ const ReyesMagosDashGame = () => {
       }
 
       obstacles = obstacles.filter((obs) => {
-        obs.x -= levelConfig.speed;
+        obs.x -= currentSpeed;
         drawObstacle(obs);
 
         if (checkCollision(obs)) {
@@ -514,6 +668,7 @@ const ReyesMagosDashGame = () => {
             navigator.vibrate([120, 40, 120]);
             hasCollided = true;
           }
+          playHitSound();
           setGameState("gameOver");
           return false;
         }
@@ -521,17 +676,18 @@ const ReyesMagosDashGame = () => {
         if (!obs.passed && obs.x + obs.width < character.x) {
           obs.passed = true;
           setScore((prev) => prev + 10);
+          spawnSpark();
         }
 
         return obs.x + obs.width > -50;
       });
 
-      distance += levelConfig.speed;
+      distance += currentSpeed;
 
       const hudX = 16;
       const hudY = 16;
       const hudWidth = 220;
-      const hudHeight = 74;
+      const hudHeight = 94;
 
       ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
       ctx.fillRect(hudX, hudY, hudWidth, hudHeight);
@@ -544,9 +700,17 @@ const ReyesMagosDashGame = () => {
       ctx.font = "bold 24px Arial";
       ctx.fillText(`🥅 ${score}`, hudX + 12, hudY + 60);
 
+      ctx.fillStyle = "#a5b4fc";
+      ctx.font = "bold 14px Arial";
+      ctx.fillText(
+        `${gameMode === "story" ? "Historia" : modeConfig.name} · ${bpm} BPM`,
+        hudX + 12,
+        hudY + 78
+      );
+
       frameCount++;
 
-      if (distance >= levelDistance) {
+      if (gameMode === "story" && distance >= levelDistance) {
         const newUnlocked = [...unlockedLevels];
         if (!newUnlocked.includes(currentLevel)) {
           newUnlocked.push(currentLevel);
@@ -577,11 +741,21 @@ const ReyesMagosDashGame = () => {
         cancelAnimationFrame(gameLoopRef.current);
       }
     };
-  }, [gameState, currentLevel, unlockedLevels]);
+  }, [gameState, currentLevel, unlockedLevels, gameMode]);
 
   const startLevel = (level) => {
     setCurrentLevel(level);
     setScore(0);
+    setGameMode("story");
+    startMusic("story");
+    setGameState("playing");
+  };
+
+  const startMode = (mode) => {
+    setCurrentLevel(1);
+    setScore(0);
+    setGameMode(mode);
+    startMusic(mode);
     setGameState("playing");
   };
 
@@ -646,36 +820,79 @@ const ReyesMagosDashGame = () => {
             </ul>
           </div>
 
-          <div className="space-y-3 mb-6">
-            {levels.map((level, index) => {
-              const levelNum = index + 1;
-              const isUnlocked =
-                levelNum === 1 || unlockedLevels.includes(levelNum - 1);
-              const isCompleted = unlockedLevels.includes(levelNum);
-
-              return (
+          <div className="mb-6">
+            <h2 className="font-bold text-lg sm:text-xl mb-3 text-blue-800">
+              🧭 Modo de juego
+            </h2>
+            <div className="grid sm:grid-cols-3 gap-3 mb-5">
+              {[
+                { key: "story", label: "Historia" },
+                { key: "endless", label: "Endless" },
+                { key: "ritmo", label: "Ritmo" },
+              ].map((mode) => (
                 <button
-                  key={levelNum}
-                  onClick={() => isUnlocked && startLevel(levelNum)}
-                  disabled={!isUnlocked}
-                  className={`w-full p-3 sm:p-4 rounded-xl font-bold text-base sm:text-lg transition-all transform hover:scale-105 shadow-lg ${
-                    isCompleted
-                      ? "bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700"
-                      : isUnlocked
-                      ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700"
-                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  key={mode.key}
+                  onClick={() => setGameMode(mode.key)}
+                  className={`p-3 rounded-xl font-bold border-2 transition ${
+                    gameMode === mode.key
+                      ? "bg-blue-600 text-white border-blue-700"
+                      : "bg-white text-blue-700 border-blue-200 hover:border-blue-400"
                   }`}
                 >
-                  <div className="flex items-center justify-between">
-                    <span>
-                      Nivel {levelNum}: {level.name}
-                    </span>
-                    {isCompleted && <Trophy className="w-6 h-6" />}
-                    {!isUnlocked && <span>🔒</span>}
-                  </div>
+                  {mode.label}
                 </button>
-              );
-            })}
+              ))}
+            </div>
+
+            {gameMode === "story" ? (
+              <div className="space-y-3">
+                {levels.map((level, index) => {
+                  const levelNum = index + 1;
+                  const isUnlocked =
+                    levelNum === 1 || unlockedLevels.includes(levelNum - 1);
+                  const isCompleted = unlockedLevels.includes(levelNum);
+
+                  return (
+                    <button
+                      key={levelNum}
+                      onClick={() => isUnlocked && startLevel(levelNum)}
+                      disabled={!isUnlocked}
+                      className={`w-full p-3 sm:p-4 rounded-xl font-bold text-base sm:text-lg transition-all transform hover:scale-105 shadow-lg ${
+                        isCompleted
+                          ? "bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700"
+                          : isUnlocked
+                          ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700"
+                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span>
+                          Nivel {levelNum}: {level.name}
+                        </span>
+                        {isCompleted && <Trophy className="w-6 h-6" />}
+                        {!isUnlocked && <span>🔒</span>}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-sm sm:text-base text-gray-700">
+                  {gameMode === "endless"
+                    ? "Corre sin fin y observa cómo la velocidad aumenta."
+                    : "La velocidad pulsa con el beat para un ritmo tipo arcade."}
+                </p>
+                <button
+                  onClick={() => startMode(gameMode)}
+                  className="w-full p-3 sm:p-4 rounded-xl font-bold text-base sm:text-lg transition-all transform hover:scale-105 shadow-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white hover:from-indigo-600 hover:to-purple-700"
+                >
+                  {gameMode === "endless"
+                    ? "Iniciar Endless"
+                    : "Iniciar Ritmo"}
+                </button>
+              </div>
+            )}
           </div>
 
           {unlockedLevels.length > 0 && (
