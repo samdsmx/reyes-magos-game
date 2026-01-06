@@ -174,7 +174,7 @@ const ReyesMagosDashGame = () => {
       height: 45,
       velocityY: 0,
       gravity: 0.7,
-      jumpPower: -13,
+      jumpPower: -12,
       isJumping: false,
       isDucking: false,
     };
@@ -1048,7 +1048,7 @@ const ReyesMagosDashGame = () => {
                   🗺️ Mapa Completo Desbloqueado
                 </h3>
                 <p className="text-sm sm:text-base text-emerald-900 mb-3">
-                  Has terminado todas las fases. Puedes abrir el mapa en pantalla
+                  Has terminado todas las fases. Abre el mapa y colecta las 4 pistas
                   completa.
                 </p>
                 <button
