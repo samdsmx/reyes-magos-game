@@ -621,7 +621,7 @@ const ReyesMagosDashGame = () => {
 
       if (obs.type === "arch") {
         const pillarWidth = 16;
-        const topHeight = 40;
+        const topHeight = 70;
         const padding = 6;
 
         const characterRect = {
@@ -652,11 +652,13 @@ const ReyesMagosDashGame = () => {
           bottom: obs.y + topHeight,
         };
 
-        return (
+        const hitsPillar =
           isRectCollision(characterRect, leftPillar) ||
-          isRectCollision(characterRect, rightPillar) ||
-          isRectCollision(characterRect, topBar)
-        );
+          isRectCollision(characterRect, rightPillar);
+        const hitsTopBar =
+          !character.isDucking && isRectCollision(characterRect, topBar);
+
+        return hitsPillar || hitsTopBar;
       }
 
       const obsLeft = obs.x + 5;
