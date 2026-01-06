@@ -128,10 +128,28 @@ const ReyesMagosDashGame = () => {
       return;
     }
 
+    const BASE_WIDTH = 1000;
+    const BASE_HEIGHT = 500;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-    canvas.width = 1000;
-    canvas.height = 500;
+    let scaleFactor = 1;
+
+    const resizeCanvas = () => {
+      const dpr = window.devicePixelRatio || 1;
+      scaleFactor = Math.min(
+        window.innerWidth / BASE_WIDTH,
+        window.innerHeight / BASE_HEIGHT
+      );
+      const displayWidth = BASE_WIDTH * scaleFactor;
+      const displayHeight = BASE_HEIGHT * scaleFactor;
+      canvas.style.width = `${displayWidth}px`;
+      canvas.style.height = `${displayHeight}px`;
+      canvas.width = Math.floor(displayWidth * dpr);
+      canvas.height = Math.floor(displayHeight * dpr);
+      ctx.setTransform(dpr * scaleFactor, 0, 0, dpr * scaleFactor, 0, 0);
+    };
+
+    resizeCanvas();
 
     const storyConfig = levels[currentLevel - 1];
     const modeConfig =
@@ -164,10 +182,12 @@ const ReyesMagosDashGame = () => {
     let hasCollided = false;
     const groundY = 430;
     const levelDistance = 5000;
+    const worldWidth = BASE_WIDTH;
+    const worldHeight = BASE_HEIGHT;
 
     for (let i = 0; i < 50; i++) {
       stars.push({
-        x: Math.random() * canvas.width,
+        x: Math.random() * worldWidth,
         y: Math.random() * (groundY - 50),
         size: Math.random() * 2 + 1,
         speed: Math.random() * 0.5 + 0.2,
@@ -247,7 +267,7 @@ const ReyesMagosDashGame = () => {
       ctx.globalAlpha = opacity;
       ctx.beginPath();
       ctx.moveTo(-offset, groundY - height);
-      for (let x = -offset; x <= canvas.width + 200; x += 200) {
+      for (let x = -offset; x <= worldWidth + 200; x += 200) {
         ctx.quadraticCurveTo(
           x + 100,
           groundY - height - 20,
@@ -255,7 +275,7 @@ const ReyesMagosDashGame = () => {
           groundY - height
         );
       }
-      ctx.lineTo(canvas.width + 200, groundY);
+      ctx.lineTo(worldWidth + 200, groundY);
       ctx.lineTo(-200, groundY);
       ctx.closePath();
       ctx.fill();
@@ -268,7 +288,7 @@ const ReyesMagosDashGame = () => {
       gradient.addColorStop(0.5, "#1a1f4d");
       gradient.addColorStop(1, "#2d3561");
       ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, canvas.width, groundY);
+      ctx.fillRect(0, 0, worldWidth, groundY);
 
       drawParallaxLayer("#1d2548", 0.15, 190, 0.9);
       drawParallaxLayer("#28315a", 0.35, 140, 0.85);
@@ -276,7 +296,7 @@ const ReyesMagosDashGame = () => {
 
       stars.forEach((star) => {
         star.x -= star.speed * 1.4;
-        if (star.x < 0) star.x = canvas.width;
+        if (star.x < 0) star.x = worldWidth;
 
         const twinkle = Math.sin(frameCount * 0.1 + star.x) * 0.5 + 0.5;
         ctx.fillStyle = `rgba(255, 255, 255, ${twinkle})`;
@@ -304,12 +324,12 @@ const ReyesMagosDashGame = () => {
         0,
         groundY,
         0,
-        canvas.height
+        worldHeight
       );
       groundGradient.addColorStop(0, "#d4a574");
       groundGradient.addColorStop(1, "#b8885a");
       ctx.fillStyle = groundGradient;
-      ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+      ctx.fillRect(0, groundY, worldWidth, worldHeight - groundY);
 
       ctx.fillStyle = "rgba(210, 180, 140, 0.3)";
       ctx.beginPath();
@@ -549,7 +569,7 @@ const ReyesMagosDashGame = () => {
       const type = types[Math.floor(Math.random() * types.length)];
 
       let obstacle = {
-        x: canvas.width,
+        x: worldWidth,
         type: type,
         passed: false,
       };
@@ -740,7 +760,7 @@ const ReyesMagosDashGame = () => {
     };
 
     const gameLoop = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, worldWidth, worldHeight);
       drawBackground();
 
       const beatPhase =
@@ -770,7 +790,7 @@ const ReyesMagosDashGame = () => {
         0
       ) {
         const lastObstacle = obstacles[obstacles.length - 1];
-        if (!lastObstacle || lastObstacle.x < canvas.width - 200) {
+        if (!lastObstacle || lastObstacle.x < worldWidth - 200) {
           obstacles.push(createObstacle());
         }
       }
@@ -845,6 +865,8 @@ const ReyesMagosDashGame = () => {
 
     gameLoop();
 
+    window.addEventListener("resize", resizeCanvas);
+
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.removeEventListener("keyup", handleKeyUp);
@@ -852,6 +874,7 @@ const ReyesMagosDashGame = () => {
       canvas.removeEventListener("pointerdown", handlePressStart);
       canvas.removeEventListener("pointerup", handlePressEnd);
       canvas.removeEventListener("pointercancel", handlePressEnd);
+      window.removeEventListener("resize", resizeCanvas);
       clearTimeout(pressTimeout);
       if (gameLoopRef.current) {
         cancelAnimationFrame(gameLoopRef.current);
